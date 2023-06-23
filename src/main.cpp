@@ -1,41 +1,54 @@
 #include <Arduino.h>
 
-const int led = A2;
-const int button = A0;
-bool lightState = false;
+const int led = 5;
 bool increase = true;
 int brightness = 0;
 
 void setup() { 
 
   pinMode(led, OUTPUT);
-  pinMode(button, INPUT);
 
 }
 
 void loop() {
 
-  if(lightState){
-    
-    analogWrite(led, brightness);
-    delay(500);
-    if (increase) {
-      brightness += 10;
-      if(brightness > 255){
-        increase = false;
-      }
-    }else{
-      brightness -= 10;
-      if(brightness < 0) {
-        lightState = false;
-      }
-    }
+  analogWrite(led, brightness);
+  dimUp();
+  delay(50);
 
-  }else if(!lightState){
-    if(analogRead(button) == HIGH){
-      lightState = true;
+}
+
+void dimUp(){
+
+  analogWrite(led, brightness);
+  if (increase) {
+    brightness += 1;
+    if(brightness >= 150){
+    increase = false;
+    }
+  }else{
+    brightness -= 1;
+    if(brightness <= 0) {
       increase = true;
-      brightness = 0;
     }
   }
+
+}
+
+void dimDown(){
+
+  analogWrite(led, brightness);
+  if (increase) {
+    brightness += 1;
+    if(brightness >= 150){
+    increase = false;
+    }
+  }else{
+    brightness -= 1;
+    if(brightness <= 0) {
+      increase = true;
+    }
+  }
+  delay(50);
+
 }
