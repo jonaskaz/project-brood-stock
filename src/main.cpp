@@ -1,41 +1,30 @@
 #include <Arduino.h>
 
-const int led = A2;
-const int button = A0;
-bool lightState = false;
-bool increase = true;
-int brightness = 0;
+#include <ezButton.h>
 
-void setup() { 
+#define CLOCKPIN 7
 
-  pinMode(led, OUTPUT);
-  pinMode(button, INPUT);
+ezButton clock(CLOCKPIN);
 
+bool isClockOn();
+
+void setup() {
+  Serial.begin(9600);
+  clock.setDebounceTime(200);
 }
 
 void loop() {
+  clock.loop();
 
-  if(lightState){
-    
-    analogWrite(led, brightness);
-    delay(500);
-    if (increase) {
-      brightness += 10;
-      if(brightness > 255){
-        increase = false;
-      }
-    }else{
-      brightness -= 10;
-      if(brightness < 0) {
-        lightState = false;
-      }
-    }
-
-  }else if(!lightState){
-    if(analogRead(button) == HIGH){
-      lightState = true;
-      increase = true;
-      brightness = 0;
-    }
+  if (isClockOn()) {
+    Serial.println("Lights should be on");
+  } else {
+    Serial.println("Off");
   }
+  delay(50);
+}
+
+bool isClockOn() {
+  int state = clock.getState();
+  return (state == LOW);
 }
