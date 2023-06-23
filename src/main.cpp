@@ -18,7 +18,6 @@ int brightness = 0;
 bool isClockOn();
 void setupMCP();
 void setDacValue(int value);
-void dimOn(int seconds);
 
 void setup() {
   Serial.begin(115200);
