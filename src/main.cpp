@@ -17,34 +17,38 @@ const int MINBRIGHTNESS = 0;
 const int INCREMENT = 10;
 const int LOOPDELAY = 30;
 int brightness = 0;
-unsigned long time;
+double elapsedTime = 0;
+unsigned long prevTime;
+unsigned long rampTime;
 
 bool isClockOn();
 void setupMCP();
 void setDacValue(int value);
-void dimmerControl(double, bool);
+unsigned long dimmerControl(bool);
 
 void setup() {
   Serial.begin(115200);
   clock.setDebounceTime(200);
   setupMCP();
-  time = 60000;//1 minute
+  prevTime = millis();
+  rampTime = 60000;//1 minute change time here
 }
 
 void loop() {
+
   clock.loop();
   if (isClockOn()) {
     if (brightness < MAXBRIGHTNESS) {
-      brightness += INCREMENT;
+      prevTime = dimmerControl(true);
     }
   } else {
     if (brightness > MINBRIGHTNESS) {
-      brightness -= INCREMENT;
+      prevTime = dimmerControl(false);
     }
   }
   setDacValue(brightness);
   Serial.println(brightness);
-  delay(LOOPDELAY);
+  //delay(LOOPDELAY);
 }
 
 bool isClockOn() {
@@ -70,36 +74,28 @@ void setDacValue(int value) {
   mcp.setChannelValue(DACCHANNEL, value, MCP4728_VREF_INTERNAL,
                       MCP4728_GAIN_2X);
 }
+
 //ramps up the brightness of the light
-//also written to handle millis() overflow, I hope
-void dimmerControl(double rampTime, bool increase) {
+//also written to handle millis() overflow
+unsigned long dimmerControl(bool increase) {
 
   unsigned long currTime = millis();
-  unsigned long prevTime = currTime;
-  double elapsedTime = 0;
-
-  while(elapsedTime < rampTime) {
-    currTime = millis();
 	//unsigned long should account for overflow on arithmetic
 	elapsedTime += (currTime - prevTime);
-    double ratio;
-    //dim up or down based on what is needed
-    if(increase) {
-      ratio = elapsedTime/rampTime;
-      Serial.print("Ramp up time: ");
-    }else{
-      ratio = 1 - (elapsedTime/rampTime);
-      Serial.print("Dim Down: ");
+  double ratio;
+  //dim up or down based on what is needed
+  if(increase){
+    ratio = elapsedTime/rampTime;
+    if(ratio > 1){
+      ratio = 1;
     }
-    brightness = round(MAXBRIGHTNESS * ratio);
-    
-    //write to led, may need if statement to switch from DAC to converter pin
-    analogWrite(LED, brightness);
-    prevTime = currTime;
-
-    
-    Serial.print(elapsedTime);
-    Serial.print(" Brightness: ");
-    Serial.println(brightness);
+  }else{
+    ratio = 1 - (elapsedTime/rampTime);
+    if(ratio < 0){
+      ratio = 0;
+    }
   }
+  brightness = round(MAXBRIGHTNESS * ratio);
+    
+  return currTime;
 }
