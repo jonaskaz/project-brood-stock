@@ -1,6 +1,5 @@
 #include <Adafruit_MCP4728.h>
 #include <Arduino.h>
-#include <Adafruit_BusIO_Register.h>
 #include <Wire.h>
 #include <ezButton.h>
 
@@ -9,46 +8,53 @@
 ezButton clock(CLOCKPIN);
 Adafruit_MCP4728 mcp;
 
-const int LED = 5;
-//const int MAXBRIGHTNESS = 255.0;
 const MCP4728_channel_t DACCHANNEL = MCP4728_CHANNEL_A;
 const int MAXBRIGHTNESS = 4095;
-const int MINBRIGHTNESS = 0;
+const int MINBRIGHTNESS = 500;
 const int INCREMENT = 10;
 const int LOOPDELAY = 30;
-int brightness = 0;
-double elapsedTime = 0;
-unsigned long prevTime;
-unsigned long rampTime;
+const long RAMPTIME = 10000;
+
+int brightness = MINBRIGHTNESS;
+int startBrightness = brightness;
+unsigned long elapsedTime = 0;
+unsigned long startTime;
 
 bool isClockOn();
 void setupMCP();
 void setDacValue(int value);
-unsigned long dimmerControl(bool);
+void updateSunriseBrightness();
+void updateSunsetBrightness();
+void updateElapsedTime();
 
 void setup() {
   Serial.begin(115200);
   clock.setDebounceTime(200);
   setupMCP();
-  prevTime = millis();
-  rampTime = 60000;//1 minute change time here
+  startTime = millis();
+  Serial.println(RAMPTIME);
 }
 
 void loop() {
-
   clock.loop();
-  if (isClockOn()) {
-    if (brightness < MAXBRIGHTNESS) {
-      prevTime = dimmerControl(true);
-    }
-  } else {
-    if (brightness > MINBRIGHTNESS) {
-      prevTime = dimmerControl(false);
-    }
+  if (clock.isPressed() || clock.isReleased()) {
+    startTime = millis();
+    elapsedTime = 0;
+    startBrightness = brightness;
   }
-  setDacValue(brightness);
+  int prevBrightness = brightness;
+  if (isClockOn()) {
+    updateElapsedTime();
+    updateSunriseBrightness();
+  } else {
+    updateElapsedTime();
+    updateSunsetBrightness();
+  }
+  if (prevBrightness != brightness) {
+    setDacValue(brightness);
+  }
+  Serial.print("Brightness: ");
   Serial.println(brightness);
-  //delay(LOOPDELAY);
 }
 
 bool isClockOn() {
@@ -69,33 +75,26 @@ void setupMCP() {
 }
 
 void setDacValue(int value) {
-  value = min(MAXBRIGHTNESS, value);
-  value = max(MINBRIGHTNESS, value);
+  value = constrain(value, MINBRIGHTNESS, MAXBRIGHTNESS);
   mcp.setChannelValue(DACCHANNEL, value, MCP4728_VREF_INTERNAL,
                       MCP4728_GAIN_2X);
 }
 
-//ramps up the brightness of the light
-//also written to handle millis() overflow
-unsigned long dimmerControl(bool increase) {
-
+void updateElapsedTime() {
   unsigned long currTime = millis();
-	//unsigned long should account for overflow on arithmetic
-	elapsedTime += (currTime - prevTime);
-  double ratio;
-  //dim up or down based on what is needed
-  if(increase){
-    ratio = elapsedTime/rampTime;
-    if(ratio > 1){
-      ratio = 1;
-    }
-  }else{
-    ratio = 1 - (elapsedTime/rampTime);
-    if(ratio < 0){
-      ratio = 0;
-    }
-  }
-  brightness = round(MAXBRIGHTNESS * ratio);
-    
-  return currTime;
+  elapsedTime = (currTime - startTime);
+}
+
+void updateSunriseBrightness() {
+  int brightnessBuffer =
+      map(startBrightness, MINBRIGHTNESS, MAXBRIGHTNESS, 0, RAMPTIME);
+  brightness = min(MAXBRIGHTNESS, map(elapsedTime + brightnessBuffer, 0,
+                                      RAMPTIME, MINBRIGHTNESS, MAXBRIGHTNESS));
+}
+
+void updateSunsetBrightness() {
+  int brightnessBuffer =
+      map(startBrightness, MAXBRIGHTNESS, MINBRIGHTNESS, 0, RAMPTIME);
+  brightness = max(MINBRIGHTNESS, map(elapsedTime + brightnessBuffer, RAMPTIME,
+                                      0, MINBRIGHTNESS, MAXBRIGHTNESS));
 }
