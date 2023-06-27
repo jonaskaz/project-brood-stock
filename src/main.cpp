@@ -1,18 +1,15 @@
-#include <Adafruit_MCP4728.h>
 #include <Arduino.h>
 #include <Wire.h>
 #include <ezButton.h>
 
 #define CLOCKPIN 7
+#define PWMPIN 3
 
 ezButton clock(CLOCKPIN);
-Adafruit_MCP4728 mcp;
 
-const MCP4728_channel_t DACCHANNEL = MCP4728_CHANNEL_A;
-const int MAXBRIGHTNESS = 4095;
-const int MINBRIGHTNESS = 500;
+const int MAXBRIGHTNESS = 255;
+const int MINBRIGHTNESS = 0;
 const int INCREMENT = 10;
-const int LOOPDELAY = 30;
 const long RAMPTIME = 10000;
 
 int brightness = MINBRIGHTNESS;
@@ -21,8 +18,7 @@ unsigned long elapsedTime = 0;
 unsigned long startTime;
 
 bool isClockOn();
-void setupMCP();
-void setDacValue(int value);
+void setPWMValue(int value);
 void updateSunriseBrightness();
 void updateSunsetBrightness();
 void updateElapsedTime();
@@ -30,9 +26,7 @@ void updateElapsedTime();
 void setup() {
   Serial.begin(115200);
   clock.setDebounceTime(200);
-  setupMCP();
   startTime = millis();
-  Serial.println(RAMPTIME);
 }
 
 void loop() {
@@ -51,7 +45,7 @@ void loop() {
     updateSunsetBrightness();
   }
   if (prevBrightness != brightness) {
-    setDacValue(brightness);
+    setPWMValue(brightness);
   }
   Serial.print("Brightness: ");
   Serial.println(brightness);
@@ -62,22 +56,9 @@ bool isClockOn() {
   return (state == LOW);
 }
 
-void setupMCP() {
-  while (!Serial)
-    delay(10);
-
-  if (!mcp.begin()) {
-    Serial.println("Failed to find MCP4728 chip");
-    while (1) {
-      delay(10);
-    }
-  }
-}
-
-void setDacValue(int value) {
+void setPWMValue(int value) {
   value = constrain(value, MINBRIGHTNESS, MAXBRIGHTNESS);
-  mcp.setChannelValue(DACCHANNEL, value, MCP4728_VREF_INTERNAL,
-                      MCP4728_GAIN_2X);
+  analogWrite(PWMPIN, value);
 }
 
 void updateElapsedTime() {
