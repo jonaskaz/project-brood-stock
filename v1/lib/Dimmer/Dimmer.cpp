@@ -11,7 +11,7 @@ Dimmer::Dimmer(int maxBrightness, int minBrightness, long sunriseLength,
 
 void Dimmer::resetTiming() {
   startTime = myMillis();
-  elapsedTime = 0;
+  elapsedTime = 0UL;
   startBrightness = brightness;
 }
 
