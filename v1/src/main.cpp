@@ -5,7 +5,7 @@
 #include <ezButton.h>
 
 #define CLOCKPIN 7
- 
+
 const int MAXBRIGHTNESS = 4095;
 const int MINBRIGHTNESS = 500;
 const long SUNRISELENGTH = 6000L;
@@ -32,7 +32,6 @@ void loop() {
   if (clock.isPressed() || clock.isReleased()) {
     dimmer.resetTiming();
   }
-  int prevBrightness = dimmer.brightness;
   if (isClockOn()) {
     dimmer.updateElapsedTime();
     dimmer.updateSunriseBrightness();
@@ -40,9 +39,7 @@ void loop() {
     dimmer.updateElapsedTime();
     dimmer.updateSunsetBrightness();
   }
-  if (prevBrightness != dimmer.brightness) {
-    setDacValue(dimmer.brightness);
-  }
+  setDacValue(dimmer.brightness);
   Serial.print("Brightness: ");
   Serial.println(dimmer.brightness);
   Serial.print("Elapsed: ");
