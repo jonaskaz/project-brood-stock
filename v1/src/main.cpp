@@ -8,8 +8,8 @@
 
 const int MAXBRIGHTNESS = 4095;
 const int MINBRIGHTNESS = 500;
-const long SUNRISELENGTH = 6000L;
-const long SUNSETLENGTH = 6000L;
+const long SUNRISELENGTH = 600000L;
+const long SUNSETLENGTH = 600000L;
 
 ezButton clock(CLOCKPIN);
 Adafruit_MCP4728 mcp;
