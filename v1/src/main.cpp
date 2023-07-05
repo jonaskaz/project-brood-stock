@@ -9,15 +9,16 @@
 
 const int MAXBRIGHTNESS = 4095;
 const int MINBRIGHTNESS = 500;
-const long SUNRISELENGTH = 100000L;
-const long SUNSETLENGTH = 100000L;
+const long SUNRISELENGTHSECONDS = 3600L;
+const long SUNSETLENGTHSECONDS = 3600L;
 uint8_t prevLogMinute = 0;
 const MCP4728_channel_t DACCHANNEL = MCP4728_CHANNEL_A;
 
 ezButton clock(CLOCKPIN);
 RV8803 rtc;
 Adafruit_MCP4728 mcp;
-Dimmer dimmer(MAXBRIGHTNESS, MINBRIGHTNESS, SUNRISELENGTH, SUNSETLENGTH);
+Dimmer dimmer(MAXBRIGHTNESS, MINBRIGHTNESS, SUNRISELENGTHSECONDS,
+              SUNSETLENGTHSECONDS);
 
 bool isClockOn();
 void setupMCP();
@@ -35,33 +36,33 @@ void setup() {
     while (1)
       ;
   }
+  rtc.updateTime();
+  TimeElements tm = dimmer.createTimeElements(rtc);
+  dimmer.setStartTime(tm);
 }
 
 void loop() {
   clock.loop();
   rtc.updateTime();
-  uint8_t currHour = rtc.getHours();
-  uint8_t currMinute = rtc.getMinutes();
-  uint8_t currSecond = rtc.getSeconds();
+  TimeElements tm = dimmer.createTimeElements(rtc);
   if (clock.isPressed() || clock.isReleased()) {
-    dimmer.setStartTime(currHour, currMinute, currSecond);
+    dimmer.setStartTime(tm);
     dimmer.startBrightness = dimmer.brightness;
     dimmer.totalElapsedSeconds = 0UL;
   }
   if (isClockOn()) {
-    dimmer.updateElapsedTime(currHour, currMinute, currSecond);
+    dimmer.updateElapsedTime(tm);
     dimmer.updateSunriseBrightness();
   } else {
-    dimmer.updateElapsedTime(currHour, currMinute, currSecond);
+    dimmer.updateElapsedTime(tm);
     dimmer.updateSunsetBrightness();
   }
   setDacValue(dimmer.brightness);
-
   // Log info once a minute
-  if (prevLogMinute != currMinute) {
-    prevLogMinute = currMinute;
-    logInfo(currHour, currMinute, currSecond, dimmer.brightness,
-            dimmer.totalElapsedSeconds, isClockOn());
+  if (prevLogMinute != rtc.getMinutes()) {
+    prevLogMinute = rtc.getMinutes();
+    logInfo(rtc.getHours(), rtc.getMinutes(), rtc.getSeconds(),
+            dimmer.brightness, dimmer.totalElapsedSeconds, isClockOn());
   }
 }
 

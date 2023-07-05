@@ -1,5 +1,6 @@
 #include "Dimmer.h"
 #include <Arduino.h>
+#include <TimeLib.h>
 
 Dimmer::Dimmer(int maxBrightness, int minBrightness, long sunriseLenSeconds,
                long sunsetLenSeconds) {
@@ -7,30 +8,22 @@ Dimmer::Dimmer(int maxBrightness, int minBrightness, long sunriseLenSeconds,
   minBright = minBrightness;
   sunriseSeconds = sunriseLenSeconds;
   sunsetSeconds = sunsetLenSeconds;
+  brightness = minBright;
+  startBrightness = brightness;
 }
 
-void Dimmer::setStartTime(int hour, int minute, int second) {
-  startHour = hour;
-  startMinute = minute;
-  startSecond = second;
-}
+TimeElements Dimmer::createTimeElements(RV8803 rtc) {
+  TimeElements tm = {rtc.getSeconds(),     rtc.getMinutes(), rtc.getHours(),
+                     rtc.getWeekday() + 1, rtc.getDate(),    rtc.getMonth(),
+                     rtc.getYear()};
+  return tm;
+};
 
-unsigned long Dimmer::updateElapsedTime(int currentHour, int currentMinute,
-                                        int currentSecond) {
-  int elapsedHour = currentHour - startHour;
-  if (currentHour < startHour) {
-    elapsedHour = (24 - startHour) + currentHour;
-  }
-  int elapsedMinutes = currentMinute - startMinute;
-  if (currentMinute < startMinute) {
-    elapsedMinutes = (60 - startMinute) + currentMinute;
-  }
-  int elapsedSeconds = currentSecond - startSecond;
-  if (currentSecond < startSecond) {
-    elapsedSeconds = (60 - startSecond) + currentSecond;
-  }
-  totalElapsedSeconds =
-      (elapsedHour * 3600) + (elapsedMinutes * 60) + elapsedSeconds;
+void Dimmer::setStartTime(TimeElements tm) { startTime = makeTime(tm); }
+
+unsigned long Dimmer::updateElapsedTime(TimeElements tm) {
+  time_t currentTime = makeTime(tm);
+  totalElapsedSeconds = currentTime - startTime;
   return totalElapsedSeconds;
 }
 
