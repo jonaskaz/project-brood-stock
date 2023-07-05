@@ -7,8 +7,8 @@ public:
   long sunriseLen; // = 600000L; // 10 minutes
   long sunsetLen;
 
-  int brightness = minBright;
-  int startBrightness = brightness;
+  unsigned long brightness = minBright;
+  unsigned long startBrightness = brightness;
   unsigned long elapsedTime = 0UL;
   unsigned long startTime = myMillis();
   unsigned long milliStart = 0UL;
