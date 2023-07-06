@@ -1,24 +1,25 @@
 #pragma once
+#include <SparkFun_RV8803.h>
+#include <TimeLib.h>
 
 class Dimmer {
 public:
-  int maxBright;   // = 4095;
-  int minBright;   // = 500;
-  long sunriseLen; // = 600000L; // 10 minutes
-  long sunsetLen;
+  int maxBright; // = 4095;
+  int minBright; // = 500;
+  long sunriseSeconds;
+  long sunsetSeconds;
 
-  int brightness = minBright;
-  int startBrightness = brightness;
-  unsigned long elapsedTime = 0UL;
-  unsigned long startTime = myMillis();
-  unsigned long milliStart = 0UL;
+  int brightness;
+  int startBrightness;
+  unsigned long totalElapsedSeconds = 0UL;
+  time_t startTime;
 
-  // Constructor
-  Dimmer(int maxBrightness, int minBrightness, long riseTime, long setTime);
-
-  void resetTiming();
+  Dimmer(int maxBrightness, int minBrightness, long sunriseLenSeconds,
+         long sunsetLenSeconds);
+  TimeElements createTimeElements(RV8803 rtc);
+  void setStartTime(TimeElements tm);
   void updateSunriseBrightness();
   void updateSunsetBrightness();
-  void updateElapsedTime();
-  unsigned long myMillis();
+
+  unsigned long updateElapsedTime(TimeElements tm);
 };

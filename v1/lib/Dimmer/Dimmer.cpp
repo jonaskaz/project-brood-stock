@@ -1,37 +1,42 @@
 #include "Dimmer.h"
 #include <Arduino.h>
+#include <TimeLib.h>
 
-Dimmer::Dimmer(int maxBrightness, int minBrightness, long sunriseLength,
-               long sunsetLength) {
+Dimmer::Dimmer(int maxBrightness, int minBrightness, long sunriseLenSeconds,
+               long sunsetLenSeconds) {
   maxBright = maxBrightness;
   minBright = minBrightness;
-  sunriseLen = sunriseLength;
-  sunsetLen = sunsetLength;
-}
-
-void Dimmer::resetTiming() {
-  startTime = myMillis();
-  elapsedTime = 0UL;
+  sunriseSeconds = sunriseLenSeconds;
+  sunsetSeconds = sunsetLenSeconds;
+  brightness = minBright;
   startBrightness = brightness;
 }
 
-void Dimmer::updateElapsedTime() {
-  unsigned long currTime = myMillis();
-  elapsedTime = (currTime - startTime);
+TimeElements Dimmer::createTimeElements(RV8803 rtc) {
+  TimeElements tm = {rtc.getSeconds(),     rtc.getMinutes(), rtc.getHours(),
+                     rtc.getWeekday() + 1, rtc.getDate(),    rtc.getMonth(),
+                     rtc.getYear()};
+  return tm;
+};
+
+void Dimmer::setStartTime(TimeElements tm) { startTime = makeTime(tm); }
+
+unsigned long Dimmer::updateElapsedTime(TimeElements tm) {
+  time_t currentTime = makeTime(tm);
+  totalElapsedSeconds = currentTime - startTime;
+  return totalElapsedSeconds;
 }
 
 void Dimmer::updateSunriseBrightness() {
   unsigned long brightnessBuffer =
-      map(startBrightness, minBright, maxBright, 0, sunriseLen);
-  brightness = min(maxBright, map(elapsedTime + brightnessBuffer, 0, sunriseLen,
-                                  minBright, maxBright));
+      map(startBrightness, minBright, maxBright, 0, sunriseSeconds);
+  brightness = min(maxBright, map(totalElapsedSeconds + brightnessBuffer, 0,
+                                  sunriseSeconds, minBright, maxBright));
 }
 
 void Dimmer::updateSunsetBrightness() {
   unsigned long brightnessBuffer =
-      map(startBrightness, maxBright, minBright, 0, sunsetLen);
-  brightness = max(minBright, map(elapsedTime + brightnessBuffer, sunsetLen, 0,
-                                  minBright, maxBright));
+      map(startBrightness, maxBright, minBright, 0, sunsetSeconds);
+  brightness = max(minBright, map(totalElapsedSeconds + brightnessBuffer,
+                                  sunsetSeconds, 0, minBright, maxBright));
 }
-
-unsigned long Dimmer::myMillis() { return millis() + milliStart; }
