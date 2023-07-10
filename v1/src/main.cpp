@@ -8,7 +8,7 @@
 #define CLOCKPIN 7
 
 const int MAXBRIGHTNESS = 4095;
-const int MINBRIGHTNESS = 500;
+const int MINBRIGHTNESS = 300;
 const long SUNRISELENGTHSECONDS = 3600L;
 const long SUNSETLENGTHSECONDS = 3600L;
 uint8_t prevLogMinute = 0;
@@ -37,6 +37,7 @@ void setup() {
       ;
   }
   rtc.updateTime();
+  rtc.set24Hour();
   TimeElements tm = dimmer.createTimeElements(rtc);
   dimmer.setStartTime(tm);
 }
