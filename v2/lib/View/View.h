@@ -23,6 +23,7 @@ public:
 
 private:
   String timeToString(time_t t);
-  void showHome(time_t sunrise, time_t sunset);
   String zeroPadTimeString(String t);
+  void showHome(time_t sunrise, time_t sunset);
+  void showManualMode(bool manual);
 };

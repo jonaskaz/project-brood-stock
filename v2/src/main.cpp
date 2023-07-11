@@ -14,11 +14,16 @@ void setup() {
   TimeElements tm = {1, 2, 3, 1, 10, 5, year};
   m.sunriseTime = makeTime(tm);
   m.sunsetTime = makeTime(tm);
+  m.manualTiming = false;
   view.init();
 }
 
 void loop() {
-  Screen home;
-  view.showScreen(home, m);
-  delay(1000);
+  Screen screen;
+  screen = manualMode;
+  view.showScreen(screen, m);
+  delay(3000);
+  screen = home;
+  view.showScreen(screen, m);
+  delay(3000);
 }

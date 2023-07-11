@@ -15,10 +15,14 @@ void View::init() {
 }
 
 void View::showScreen(Screen currentScreen, Model model) {
+  lcd.clear();
+  lcd.noBlink();
   switch (currentScreen) {
   case home:
     showHome(model.sunriseTime, model.sunsetTime);
+    break;
   case manualMode:
+    showManualMode(model.manualTiming);
     break;
   case sunriseLength:
     break;
@@ -55,8 +59,6 @@ String View::zeroPadTimeString(String t) {
 }
 
 void View::showHome(time_t sunrise, time_t sunset) {
-  lcd.clear();
-  lcd.noBlink();
   lcd.setCursor(0, 0);
   lcd.print("Sunrise: ");
   String sunriseString = timeToString(sunrise);
@@ -65,4 +67,15 @@ void View::showHome(time_t sunrise, time_t sunset) {
   lcd.print("Sunset: ");
   String sunsetString = timeToString(sunset);
   lcd.print(sunsetString);
+}
+
+void View::showManualMode(bool manual) {
+  lcd.setCursor(0, 0);
+  lcd.print("Manual Timing:");
+  lcd.setCursor(0, 1);
+  if (manual) {
+    lcd.print("On");
+  } else {
+    lcd.print("Off");
+  }
 }
