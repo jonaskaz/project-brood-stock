@@ -1,31 +1,24 @@
-#include <Arduino.h>
+#include "Wire.h"
 #include <Adafruit_LiquidCrystal.h>
+#include <Arduino.h>
+#include <Model.h>
+#include <TimeLib.h>
+#include <View.h>
 
-// Connect via i2c, default address #0 (A0-A2 not jumpered)
-Adafruit_LiquidCrystal lcd(0);
+View view;
+Model m;
 
 void setup() {
   Serial.begin(115200);
-  // while(!Serial);
-  Serial.println("LCD Character Backpack I2C Test.");
-
-  // set up the LCD's number of rows and columns:
-  if (!lcd.begin(16, 2)) {
-    Serial.println("Could not init backpack. Check wiring.");
-    while(1);
-  }
-  Serial.println("Backpack init'd.");
-
-  // Print a message to the LCD.
-  lcd.print("hello, world!");
+  uint8_t year = 1;
+  TimeElements tm = {1, 2, 3, 1, 10, 5, year};
+  m.sunriseTime = makeTime(tm);
+  m.sunsetTime = makeTime(tm);
+  view.init();
 }
 
 void loop() {
-  // set the cursor to column 0, line 1
-  // (note: line 1 is the second row, since counting begins with 0):
-  lcd.setCursor(0, 1);
-  // print the number of seconds since reset:
-  lcd.print(millis());
-  lcd.setBacklight(HIGH);
-  delay(500);
+  Screen home;
+  view.showScreen(home, m);
+  delay(1000);
 }
