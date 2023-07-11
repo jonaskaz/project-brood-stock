@@ -19,7 +19,11 @@ public:
   View() : lcd(0){};
   Adafruit_LiquidCrystal lcd;
   void init();
-  void showScreen(Screen currentScreen, Model model);
+  Screen currentScreen = home;
+  bool editMode = false;
+  void showScreen(Model model);
+  void showEditMode();
+  void nextScreen();
 
 private:
   String timeToString(time_t t);

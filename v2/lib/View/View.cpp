@@ -14,9 +14,8 @@ void View::init() {
   lcd.setBacklight(HIGH);
 }
 
-void View::showScreen(Screen currentScreen, Model model) {
+void View::showScreen(Model model) {
   lcd.clear();
-  lcd.noBlink();
   switch (currentScreen) {
   case home:
     showHome(model.sunriseTime, model.sunsetTime);
@@ -36,6 +35,22 @@ void View::showScreen(Screen currentScreen, Model model) {
     break;
   default:
     break;
+  }
+  if (editMode) {
+    lcd.setCursor(0, 1);
+    lcd.blink();
+  } else {
+    lcd.noBlink();
+  }
+}
+
+void View::nextScreen() {
+  if (currentScreen == manualSunset) {
+    currentScreen = home;
+  } else {
+    int currentScreenInt = currentScreen;
+    currentScreenInt++;
+    currentScreen = (Screen)currentScreenInt;
   }
 }
 
