@@ -1,5 +1,4 @@
 #include "Wire.h"
-#include <Adafruit_LiquidCrystal.h>
 #include <Arduino.h>
 #include <Controller.h>
 #include <Model.h>
@@ -11,7 +10,7 @@
 
 View view;
 Model m;
-Controller controller(SS_ADDR, SS_SWITCH);
+Controller controller;
 
 void setup() {
   Serial.begin(115200);
@@ -19,15 +18,9 @@ void setup() {
   TimeElements tm = {1, 20, 14, 1, 10, 5, year};
   m.sunriseTime = makeTime(tm);
   m.sunsetTime = makeTime(tm);
-  m.manualTiming = false;
+  delay(1000);
   view.init();
+  controller.init(SS_ADDR, SS_SWITCH);
 }
 
-void loop() {
-  view.currentScreen = manualMode;
-  view.showScreen(m);
-  delay(3000);
-  view.currentScreen = home;
-  view.showScreen(m);
-  delay(3000);
-}
+void loop() { controller.run(m, view); }

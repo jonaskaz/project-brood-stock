@@ -9,7 +9,7 @@ enum Screen {
   manualMode = 1,
   sunriseLength = 2,
   sunsetLength = 3,
-  maxBrightness = 4,
+  maxBrightnessPercent = 4,
   manualSunrise = 5,
   manualSunset = 6
 };
@@ -22,7 +22,6 @@ public:
   Screen currentScreen = home;
   bool editMode = false;
   void showScreen(Model model);
-  void showEditMode();
   void nextScreen();
 
 private:
@@ -30,4 +29,9 @@ private:
   String zeroPadTimeString(String t);
   void showHome(time_t sunrise, time_t sunset);
   void showManualMode(bool manual);
+  void showSunriseLength(long sunriseLength);
+  void showSunsetLength(long sunsetLength);
+  void showMaxBrightPercent(int maxBrightnessPercent);
+  void showManualSunrise(time_t sunriseTime);
+  void showManualSunset(time_t sunsetTime);
 };

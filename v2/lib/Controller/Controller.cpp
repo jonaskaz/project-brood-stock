@@ -2,7 +2,9 @@
 #include "Model.h"
 #include "View.h"
 
-Controller::Controller(int ssAddress, int ssSwitch) {
+Controller::Controller() {}
+
+void Controller::init(int ssAddress, int ssSwitch) {
   interruptPin = ssSwitch;
   if (!ss.begin(ssAddress)) {
     Serial.println("Couldn't find rotary encoder");
@@ -15,32 +17,69 @@ Controller::Controller(int ssAddress, int ssSwitch) {
   resetEncoder();
 }
 
-void Controller::run(Model model, View view) {
+void Controller::run(Model &model, View &view) {
   if (!ss.digitalRead(interruptPin)) {
     handleButtonPress(model, view);
     resetEncoder();
   }
   if (view.editMode) {
+    updateModelFromEncoder(model, view);
   }
-  int32_t new_position = ss.getEncoderPosition();
-  if (encoderPosition != new_position) {
-    Serial.println(new_position);
-    encoderPosition = new_position;
+  view.showScreen(model);
+}
+
+void Controller::handleButtonPress(Model &model, View &view) {
+  if (view.currentScreen == home) {
+    view.nextScreen();
+  } else if (!view.editMode) {
+    view.editMode = true;
+  } else {
+    view.nextScreen();
+    view.editMode = false;
   }
+  view.lcd.clear();
+  view.showScreen(model);
+  delay(300);
+}
+
+void Controller::updateModelFromEncoder(Model &model, View &view) {
+  switch (view.currentScreen) {
+  case home:
+    break;
+  case manualMode:
+    if (getEncoderDiff() != 0) {
+      model.manualTiming = !model.manualTiming;
+    }
+    break;
+  case sunriseLength:
+    model.sunriseLength += getEncoderDiff();
+    break;
+  case sunsetLength:
+    model.sunsetLength += getEncoderDiff();
+    break;
+  case maxBrightnessPercent:
+    model.maxBrightnessPercent += getEncoderDiff();
+    constrain(model.maxBrightnessPercent, 0, 100);
+    break;
+  case manualSunrise:
+    model.sunriseTime += (getEncoderDiff() * 60);
+    break;
+  case manualSunset:
+    model.sunsetTime += (getEncoderDiff() * 60);
+    break;
+  default:
+    break;
+  }
+  resetEncoder();
 }
 
 void Controller::resetEncoder() {
-  encoderPosition = 0;
+  encoderStartPos = 0;
   ss.setEncoderPosition(0);
 }
 
-void Controller::handleButtonPress(Model model, View view) {
-  if (view.currentScreen == home) {
-    view.nextScreen();
-  } else if (view.editMode) {
-    int32_t new_position = ss.getEncoderPosition();
-  } else {
-    view.editMode = true;
-  }
-  view.showScreen(model);
+int32_t Controller::getEncoderDiff() {
+  // assumes encoderStartPos is 0
+  int32_t new_position = ss.getEncoderPosition();
+  return new_position;
 }

@@ -15,7 +15,6 @@ void View::init() {
 }
 
 void View::showScreen(Model model) {
-  lcd.clear();
   switch (currentScreen) {
   case home:
     showHome(model.sunriseTime, model.sunsetTime);
@@ -24,14 +23,19 @@ void View::showScreen(Model model) {
     showManualMode(model.manualTiming);
     break;
   case sunriseLength:
+    showSunriseLength(model.sunriseLength);
     break;
   case sunsetLength:
+    showSunsetLength(model.sunsetLength);
     break;
-  case maxBrightness:
+  case maxBrightnessPercent:
+    showMaxBrightPercent(model.maxBrightnessPercent);
     break;
   case manualSunrise:
+    showManualSunrise(model.manualSunriseTime);
     break;
   case manualSunset:
+    showManualSunset(model.manualSunsetTime);
     break;
   default:
     break;
@@ -48,7 +52,7 @@ void View::nextScreen() {
   if (currentScreen == manualSunset) {
     currentScreen = home;
   } else {
-    int currentScreenInt = currentScreen;
+    int currentScreenInt = (int)currentScreen;
     currentScreenInt++;
     currentScreen = (Screen)currentScreenInt;
   }
@@ -93,4 +97,42 @@ void View::showManualMode(bool manual) {
   } else {
     lcd.print("Off");
   }
+}
+
+void View::showSunriseLength(long sunriseLength) {
+  lcd.setCursor(0, 0);
+  lcd.print("Sunrise Length:");
+  lcd.setCursor(0, 1);
+  lcd.print(sunriseLength);
+}
+
+void View::showSunsetLength(long sunsetLength) {
+  lcd.setCursor(0, 0);
+  lcd.print("Sunset Length:");
+  lcd.setCursor(0, 1);
+  lcd.print(sunriseLength);
+}
+
+void View::showMaxBrightPercent(int maxBrightnessPercent) {
+  lcd.setCursor(0, 0);
+  lcd.print("Max Brightness:");
+  lcd.setCursor(0, 1);
+  lcd.print(maxBrightnessPercent);
+  lcd.print("%");
+}
+
+void View::showManualSunrise(time_t sunriseTime) {
+  lcd.setCursor(0, 0);
+  lcd.print("Manual Sunrise:");
+  lcd.setCursor(0, 1);
+  String sunriseTimeStr = timeToString(sunriseTime);
+  lcd.print(sunriseTimeStr);
+}
+
+void View::showManualSunset(time_t sunsetTime) {
+  lcd.setCursor(0, 0);
+  lcd.print("Manual Sunset:");
+  lcd.setCursor(0, 1);
+  String sunsetTimeStr = timeToString(sunsetTime);
+  lcd.print(sunsetTimeStr);
 }
