@@ -60,7 +60,7 @@ unsigned long Dimmer::updateElapsedTime(TimeElements tm) {
   return totalElapsedSeconds;
 }
 
-void Dimmer::setDate(int month, int day, int year){
+void Dimmer::setDate(int year, int month, int day){
   sun.setCurrentDate(year, month, day);
 }
 

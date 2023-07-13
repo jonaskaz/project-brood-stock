@@ -3,6 +3,7 @@
 #include <Adafruit_LiquidCrystal.h>
 #include <TimeLib.h>
 
+//KBIC Fish Hatchery lat and lon
 #define LATITUDE 46.8421690
 #define LONGITUDE -88.3803090
 #define TIMEZONE_OFFSET -5
