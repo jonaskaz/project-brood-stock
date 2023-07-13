@@ -43,13 +43,22 @@ void Controller::handleButtonPress(Model &model, View &view) {
 }
 
 void Controller::updateModelFromEncoder(Model &model, View &view) {
+  if (getEncoderDiff() == 0) {
+    return;
+  }
   switch (view.currentScreen) {
   case home:
     break;
+  case currentTime:
+    break;
+  case manualSunrise:
+    model.manualSunriseTime += (getEncoderDiff() * 60);
+    break;
+  case manualSunset:
+    model.manualSunsetTime += (getEncoderDiff() * 60);
+    break;
   case manualMode:
-    if (getEncoderDiff() != 0) {
-      model.manualTiming = !model.manualTiming;
-    }
+    model.manualTiming = !model.manualTiming;
     break;
   case sunriseLength:
     model.sunriseLength += getEncoderDiff();
@@ -59,18 +68,13 @@ void Controller::updateModelFromEncoder(Model &model, View &view) {
     break;
   case maxBrightnessPercent:
     model.maxBrightnessPercent += getEncoderDiff();
-    constrain(model.maxBrightnessPercent, 0, 100);
-    break;
-  case manualSunrise:
-    model.sunriseTime += (getEncoderDiff() * 60);
-    break;
-  case manualSunset:
-    model.sunsetTime += (getEncoderDiff() * 60);
+    model.maxBrightnessPercent = constrain(model.maxBrightnessPercent, 0, 100);
     break;
   default:
     break;
   }
   resetEncoder();
+  view.lcd.print("                   ");
 }
 
 void Controller::resetEncoder() {
@@ -79,7 +83,6 @@ void Controller::resetEncoder() {
 }
 
 int32_t Controller::getEncoderDiff() {
-  // assumes encoderStartPos is 0
   int32_t new_position = ss.getEncoderPosition();
   return new_position;
 }
