@@ -75,6 +75,7 @@ void Controller::updateModelFromEncoder(Model &model, View &view) {
   }
   resetEncoder();
   view.lcd.print("                   ");
+  model.saveModel();
 }
 
 void Controller::resetEncoder() {
