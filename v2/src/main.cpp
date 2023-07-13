@@ -1,31 +1,43 @@
+#include "Dimmer.h"
 #include <Arduino.h>
 #include <Adafruit_LiquidCrystal.h>
+#include <TimeLib.h>
+
+#define LATITUDE 46.8421690
+#define LONGITUDE -88.3803090
+#define TIMEZONE_OFFSET -5
+
+const int MAXBRIGHTNESS = 4095;
+const int MINBRIGHTNESS = 300;
+const long SUNRISELENGTHSECONDS = 3600L;
+const long SUNSETLENGTHSECONDS = 3600L;
+uint8_t prevLogMinute = 0;
+time_t t;
+TimeElements tm;
 
 // Connect via i2c, default address #0 (A0-A2 not jumpered)
 Adafruit_LiquidCrystal lcd(0);
+Dimmer dimmer(MAXBRIGHTNESS, MINBRIGHTNESS, SUNRISELENGTHSECONDS,
+              SUNSETLENGTHSECONDS, LATITUDE, LONGITUDE, TIMEZONE_OFFSET);
 
 void setup() {
   Serial.begin(115200);
-  // while(!Serial);
-  Serial.println("LCD Character Backpack I2C Test.");
-
-  // set up the LCD's number of rows and columns:
-  if (!lcd.begin(16, 2)) {
-    Serial.println("Could not init backpack. Check wiring.");
-    while(1);
-  }
-  Serial.println("Backpack init'd.");
-
-  // Print a message to the LCD.
-  lcd.print("hello, world!");
+  uint8_t year = 2023;
+  tm = {1, 1, 1, 1, 1, 1, year};
+  dimmer.setDate(7, 13, 2023);
+  dimmer.calcSunRise();
+  dimmer.calcSunSet();
 }
 
 void loop() {
-  // set the cursor to column 0, line 1
-  // (note: line 1 is the second row, since counting begins with 0):
-  lcd.setCursor(0, 1);
-  // print the number of seconds since reset:
-  lcd.print(millis());
-  lcd.setBacklight(HIGH);
-  delay(500);
+
+  Serial.print("Sunrise: ");
+  Serial.print(dimmer.sunriseHour);
+  Serial.print(":");
+  Serial.print(dimmer.sunriseMin);
+  Serial.print(" Sunset: ");
+  Serial.print(dimmer.sunsetHour);
+  Serial.print(":");
+  Serial.println(dimmer.sunsetMin);
+
 }
