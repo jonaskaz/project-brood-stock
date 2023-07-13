@@ -12,7 +12,6 @@ const int MINBRIGHTNESS = 300;
 const long SUNRISELENGTHSECONDS = 3600L;
 const long SUNSETLENGTHSECONDS = 3600L;
 uint8_t prevLogMinute = 0;
-time_t t;
 TimeElements tm;
 
 // Connect via i2c, default address #0 (A0-A2 not jumpered)
@@ -24,7 +23,7 @@ void setup() {
   Serial.begin(115200);
   uint8_t year = 2023;
   tm = {1, 1, 1, 1, 1, 1, year};
-  dimmer.setDate(7, 13, 2023);
+  dimmer.setDate(8, 27, 2023);
   dimmer.calcSunRise();
   dimmer.calcSunSet();
 }

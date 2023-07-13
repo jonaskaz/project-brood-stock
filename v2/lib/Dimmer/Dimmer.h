@@ -1,21 +1,27 @@
 #pragma once
+#include <Adafruit_MCP4728.h>
 #include <SparkFun_RV8803.h>
 #include <TimeLib.h>
 #include <sunset.h>
 
 class Dimmer {
 private:
+  const MCP4728_channel_t DACCHANNEL = MCP4728_CHANNEL_A;
+  Adafruit_MCP4728 mcp;
+  SunSet sun;
   double latitude;
   double longitude;
   double timeZone;
+
+  void setupMCP();
+  void setDacValue(int value);
 
 public:
   int maxBright; // = 4095;
   int minBright; // = 500;
   long sunriseSeconds;
   long sunsetSeconds;
-  
-  SunSet sun;
+
   int sunriseHour;
   int sunriseMin;
   int sunsetHour;
