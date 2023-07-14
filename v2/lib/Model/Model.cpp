@@ -15,29 +15,27 @@ void Model::init(const char *ns, long defaultRiseLen, long defaultSetLen,
 }
 
 void Model::loadModel() {
+  manualTiming = preferences.getBool(manuaTimingKey, false);
+  long manSunrise = preferences.getLong(manualSunriseKey, defaultManualSunrise);
+  manualSunriseTime = (time_t)manSunrise;
+  long manSunset = preferences.getLong(manualSunsetKey, defaultManualSunset);
+  manualSunsetTime = (time_t)manSunset;
   sunriseLength = preferences.getLong(sunriseLengthKey, defaultSunriseLen);
   sunsetLength = preferences.getLong(sunsetLengthKey, defaultSunsetLen);
   maxBrightnessPercent =
       preferences.getInt(maxBrightnessKey, defaultMaxBrightness);
-  manualSunriseTime =
-      (time_t)preferences.getLong(manualSunriseKey, defaultManualSunrise);
-  manualSunsetTime =
-      (time_t)preferences.getLong(manualSunsetKey, defaultManualSunset);
 }
 
 void Model::saveModel() {
   openPreferences();
-  Serial.println(manualSunriseTime);
-  Serial.println(manualSunsetTime);
-  long manualRiseLong = (long)manualSunriseTime;
-  long manualSetLong = (long)manualSunsetTime;
-  Serial.println(manualRiseLong);
-  Serial.println(manualSetLong);
+  preferences.putBool(manuaTimingKey, manualTiming);
+  long manSunrise = (long)manualSunriseTime;
+  preferences.putLong(manualSunriseKey, manSunrise);
+  long manSunset = (long)manualSunsetTime;
+  preferences.putLong(manualSunsetKey, manSunset);
   preferences.putLong(sunriseLengthKey, sunriseLength);
   preferences.putLong(sunsetLengthKey, sunsetLength);
   preferences.putInt(maxBrightnessKey, maxBrightnessPercent);
-  preferences.putLong(manualSunriseKey, (long)manualRiseLong);
-  preferences.putLong(manualSunsetKey, (long)manualSetLong);
   closePreferences();
 }
 
