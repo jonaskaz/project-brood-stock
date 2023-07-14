@@ -1,12 +1,12 @@
 #pragma once
 #include <Adafruit_MCP4728.h>
-#include <SparkFun_RV8803.h>
+#include <SparkFun_RV8803.h> //change to new clock later
 #include <TimeLib.h>
 #include <sunset.h>
 
 class Dimmer {
 private:
-  const MCP4728_channel_t DACCHANNEL = MCP4728_CHANNEL_A;
+  MCP4728_channel_t DACCHANNEL;
   Adafruit_MCP4728 mcp;
   SunSet sun;
   double latitude;
@@ -32,9 +32,12 @@ public:
   unsigned long totalElapsedSeconds = 0UL;
   time_t startTime;
 
+  Dimmer();
   Dimmer(int maxBrightness, int minBrightness, long sunriseLenSeconds,
          long sunsetLenSeconds);
   Dimmer(int maxBrightness, int minBrightness, long sunriseLenSeconds,
+         long sunsetLenSeconds, double lat, double lon, double tmz);
+  void setupDimmer(int maxBrightness, int minBrightness, long sunriseLenSeconds,
          long sunsetLenSeconds, double lat, double lon, double tmz);
   TimeElements createTimeElements(RV8803 rtc);
   void setStartTime(TimeElements tm);

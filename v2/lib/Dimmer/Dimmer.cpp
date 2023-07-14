@@ -2,6 +2,8 @@
 #include <Arduino.h>
 #include <TimeLib.h>
 
+Dimmer::Dimmer(){}
+
 Dimmer::Dimmer(int maxBrightness, int minBrightness, long sunriseLenSeconds,
                long sunsetLenSeconds) {
   maxBright = maxBrightness;
@@ -10,7 +12,9 @@ Dimmer::Dimmer(int maxBrightness, int minBrightness, long sunriseLenSeconds,
   sunsetSeconds = sunsetLenSeconds;
   brightness = minBright;
   startBrightness = brightness;
-  setupMCP();
+  // threw channel here for now, my compiler was throwing errors with it declared in private
+  DACCHANNEL = MCP4728_CHANNEL_A; 
+  //setupMCP();
 }
 
 Dimmer::Dimmer(int maxBrightness, int minBrightness, long sunriseLenSeconds,
@@ -24,6 +28,26 @@ Dimmer::Dimmer(int maxBrightness, int minBrightness, long sunriseLenSeconds,
   latitude = lat;
   longitude = lon;
   timeZone = tmz;
+  // threw channel here for now, my compiler was throwing errors with it declared in private
+  DACCHANNEL = MCP4728_CHANNEL_A;
+  sun.setPosition(latitude, longitude, timeZone);
+  //setupMCP();
+}
+
+//made this function to test DAC, if we call before setup() there is no feedback in Serial Monitor
+void Dimmer::setupDimmer(int maxBrightness, int minBrightness, long sunriseLenSeconds,
+                    long sunsetLenSeconds, double lat, double lon, double tmz){
+  maxBright = maxBrightness;
+  minBright = minBrightness;
+  sunriseSeconds = sunriseLenSeconds;
+  sunsetSeconds = sunsetLenSeconds;
+  brightness = minBright;
+  startBrightness = brightness;
+  latitude = lat;
+  longitude = lon;
+  timeZone = tmz;
+  // threw channel here for now, my compiler was throwing errors with it declared in private
+  DACCHANNEL = MCP4728_CHANNEL_A;
   sun.setPosition(latitude, longitude, timeZone);
   setupMCP();
 }
