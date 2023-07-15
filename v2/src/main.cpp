@@ -1,45 +1,49 @@
 #include "Dimmer.h"
 #include <Arduino.h>
-#include <Adafruit_LiquidCrystal.h>
+#include <Controller.h>
+#include <Model.h>
 #include <TimeLib.h>
+#include <View.h>
 
-//KBIC Fish Hatchery lat, lon, and tz
-#define LATITUDE 46.8421690
-#define LONGITUDE -88.3803090
-#define TIMEZONE_OFFSET -5.0
+#define SS_SWITCH 24
+#define SS_ADDR 0x36
 
-const int MAXBRIGHTNESS = 4095;
-const int MINBRIGHTNESS = 300;
-const long SUNRISELENGTHSECONDS = 3600L;
-const long SUNSETLENGTHSECONDS = 3600L;
-uint8_t prevLogMinute = 0;
-TimeElements tm;
+const char *PREFERENCES_NS = "fish";
+long DEFAULT_SUNRISE_LENGTH = 60;  // Minutes
+long DEFAULT_SUNSET_LENGTH = 60;   // Minutes
+long DEFAULT_MAX_BRIGHTNESS = 100; // Percent
+time_t DEFAULT_MANUAL_SUNRISE;
+time_t DEFAULT_MANUAL_SUNSET;
 
-// Connect via i2c, default address #0 (A0-A2 not jumpered)
-Adafruit_LiquidCrystal lcd(0);
-Dimmer dimmer; //declared here for scope
+View view;
+Model model;
+Controller controller;
+
+time_t createTime(uint8_t hour, uint8_t minute);
 
 void setup() {
   Serial.begin(115200);
-  uint8_t year = 2023;
-  tm = {1, 1, 1, 1, 1, 1, year};
-  //have to setup here for testing DAC to get feedback. before setup is too soon.
-  dimmer.setupDimmer(MAXBRIGHTNESS, MINBRIGHTNESS, SUNRISELENGTHSECONDS,
-              SUNSETLENGTHSECONDS, LATITUDE, LONGITUDE, TIMEZONE_OFFSET);
-  dimmer.setDate(8, 27, 2023);
-  dimmer.calcSunRise();
-  dimmer.calcSunSet();
+
+  DEFAULT_MANUAL_SUNRISE = createTime(8, 0);
+  DEFAULT_MANUAL_SUNSET = createTime(18, 0);
+
+  // TODO: change these with rtc and calculation
+  model.currentTime = createTime(5, 20);
+  model.sunriseTime = createTime(5, 20);
+  model.sunsetTime = createTime(5, 20);
+
+  model.init(PREFERENCES_NS, DEFAULT_SUNRISE_LENGTH, DEFAULT_SUNSET_LENGTH,
+             DEFAULT_MAX_BRIGHTNESS, DEFAULT_MANUAL_SUNRISE,
+             DEFAULT_MANUAL_SUNSET);
+  view.init();
+  controller.init(SS_ADDR, SS_SWITCH);
+  delay(1000);
 }
 
-void loop() {
+void loop() { controller.run(model, view); }
 
-  Serial.print("Sunrise: ");
-  Serial.print(dimmer.sunriseHour);
-  Serial.print(":");
-  Serial.print(dimmer.sunriseMin);
-  Serial.print(" Sunset: ");
-  Serial.print(dimmer.sunsetHour);
-  Serial.print(":");
-  Serial.println(dimmer.sunsetMin);
-
+time_t createTime(uint8_t hour, uint8_t minute) {
+  uint8_t year = 53;
+  TimeElements tm = {1, minute, hour, 1, 22, 5, year};
+  return makeTime(tm);
 }
