@@ -2,23 +2,9 @@
 #include <Arduino.h>
 #include <TimeLib.h>
 
-Dimmer::Dimmer(){}
-
 Dimmer::Dimmer(int maxBrightness, int minBrightness, long sunriseLenSeconds,
-               long sunsetLenSeconds) {
-  maxBright = maxBrightness;
-  minBright = minBrightness;
-  sunriseSeconds = sunriseLenSeconds;
-  sunsetSeconds = sunsetLenSeconds;
-  brightness = minBright;
-  startBrightness = brightness;
-  // threw channel here for now, my compiler was throwing errors with it declared in private
-  DACCHANNEL = MCP4728_CHANNEL_A; 
-  //setupMCP();
-}
-
-Dimmer::Dimmer(int maxBrightness, int minBrightness, long sunriseLenSeconds,
-               long sunsetLenSeconds, double lat, double lon, double tmz) {
+               long sunsetLenSeconds, double lat, double lon, double tmz,
+               MCP4728_channel_t dacChannel) {
   maxBright = maxBrightness;
   minBright = minBrightness;
   sunriseSeconds = sunriseLenSeconds;
@@ -28,35 +14,46 @@ Dimmer::Dimmer(int maxBrightness, int minBrightness, long sunriseLenSeconds,
   latitude = lat;
   longitude = lon;
   timeZone = tmz;
-  // threw channel here for now, my compiler was throwing errors with it declared in private
-  DACCHANNEL = MCP4728_CHANNEL_A;
-  sun.setPosition(latitude, longitude, timeZone);
-  //setupMCP();
+  DACCHANNEL = dacChannel;
 }
 
-//made this function to test DAC, if we call before setup() there is no feedback in Serial Monitor
-void Dimmer::setupDimmer(int maxBrightness, int minBrightness, long sunriseLenSeconds,
-                    long sunsetLenSeconds, double lat, double lon, double tmz){
-  maxBright = maxBrightness;
-  minBright = minBrightness;
-  sunriseSeconds = sunriseLenSeconds;
-  sunsetSeconds = sunsetLenSeconds;
-  brightness = minBright;
-  startBrightness = brightness;
-  latitude = lat;
-  longitude = lon;
-  timeZone = tmz;
-  // threw channel here for now, my compiler was throwing errors with it declared in private
-  DACCHANNEL = MCP4728_CHANNEL_A;
+void Dimmer::init() {
   sun.setPosition(latitude, longitude, timeZone);
   setupMCP();
+  updateSunriseTime();
+  updateSunsetTime();
 }
 
-TimeElements Dimmer::createTimeElements(RV8803 rtc) {
-  TimeElements tm = {rtc.getSeconds(),     rtc.getMinutes(), rtc.getHours(),
-                     rtc.getWeekday() + 1, rtc.getDate(),    rtc.getMonth(),
-                     rtc.getYear()};
-  return tm;
+int Dimmer::timeToMinPastMidnight(time_t t) {
+  int minutes = hour(t) * 60;
+  minutes += minute(t);
+  return minutes;
+}
+
+void Dimmer::updateState(time_t currentTime) {
+  updateTotalElapsedSeconds(currentTime);
+  int minutes = timeToMinPastMidnight(currentTime);
+  if (minutes > sunriseMinPastMidnight) {
+    state = Sunrise;
+  } else {
+    state = Sunset;
+  }
+}
+
+void Dimmer::run(time_t currentTime) {
+  updateState(currentTime);
+  switch (state) {
+  case Sunrise:
+    updateSunsetTime();
+    updateSunriseBrightness();
+    setDacValue(brightness);
+    break;
+  case Sunset:
+    updateSunriseTime();
+    updateSunsetBrightness();
+    setDacValue(brightness);
+    break;
+  }
 }
 
 void Dimmer::setupMCP() {
@@ -78,13 +75,11 @@ void Dimmer::setDacValue(int value) {
 
 void Dimmer::setStartTime(TimeElements tm) { startTime = makeTime(tm); }
 
-unsigned long Dimmer::updateElapsedTime(TimeElements tm) {
-  time_t currentTime = makeTime(tm);
+void Dimmer::updateTotalElapsedSeconds(time_t currentTime) {
   totalElapsedSeconds = currentTime - startTime;
-  return totalElapsedSeconds;
 }
 
-void Dimmer::setDate(int year, int month, int day){
+void Dimmer::setDate(int year, int month, int day) {
   sun.setCurrentDate(year, month, day);
 }
 
@@ -92,7 +87,7 @@ void Dimmer::updateSunriseBrightness() {
   unsigned long brightnessBuffer =
       map(startBrightness, minBright, maxBright, 0, sunriseSeconds);
   brightness = _min(maxBright, map(totalElapsedSeconds + brightnessBuffer, 0,
-                                  sunriseSeconds, minBright, maxBright));
+                                   sunriseSeconds, minBright, maxBright));
   setDacValue(brightness);
 }
 
@@ -100,43 +95,31 @@ void Dimmer::updateSunsetBrightness() {
   unsigned long brightnessBuffer =
       map(startBrightness, maxBright, minBright, 0, sunsetSeconds);
   brightness = _max(minBright, map(totalElapsedSeconds + brightnessBuffer,
-                                  sunsetSeconds, 0, minBright, maxBright));
+                                   sunsetSeconds, 0, minBright, maxBright));
   setDacValue(brightness);
 }
 
-void Dimmer::setLatLon(double lat, double lon){
+void Dimmer::setLatLon(double lat, double lon) {
   latitude = lat;
   longitude = lon;
   sun.setPosition(latitude, longitude, timeZone);
 }
 
-//calculates the sunrise's hour and mins as separate variables
-void Dimmer::calcSunRise(){
-  int sunrise = sun.calcSunrise();
-  sunriseHour = sunrise/60;
-  sunriseMin = sunrise%60;
+void Dimmer::updateSunriseTime() {
+  sunriseMinPastMidnight = sun.calcSunrise();
+  sunriseHour = sunriseMinPastMidnight / 60;
+  sunriseMin = sunriseMinPastMidnight % 60;
 }
 
-//calculates the sunset's hour and mins as separate variables
-void Dimmer::calcSunSet(){
-  int sunset = sun.calcSunset();
-  sunsetHour = sunset/60;
-  sunsetMin = sunset%60;
+void Dimmer::updateSunsetTime() {
+  sunsetMinPastMidnight = sun.calcSunset();
+  sunsetHour = sunsetMinPastMidnight / 60;
+  sunsetMin = sunsetMinPastMidnight % 60;
 }
 
-void Dimmer::setTimeZone(double tmz){
+void Dimmer::setTimeZone(double tmz) {
   timeZone = tmz;
   sun.setTZOffset(timeZone);
 }
 
-double Dimmer::getLatitude(){
-  return latitude;
-}
-
-double Dimmer::getLongitude(){
-  return longitude;
-}
-
-double Dimmer::getTimeZone(){
-  return timeZone;
-}
+double Dimmer::getTimeZone() { return timeZone; }

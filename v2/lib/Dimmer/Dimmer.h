@@ -1,11 +1,12 @@
 #pragma once
 #include <Adafruit_MCP4728.h>
-#include <SparkFun_RV8803.h> //change to new clock later
 #include <TimeLib.h>
 #include <sunset.h>
 
 class Dimmer {
-private:
+public:
+  enum State { Sunrise = 0, Sunset = 1 };
+  State state;
   MCP4728_channel_t DACCHANNEL;
   Adafruit_MCP4728 mcp;
   SunSet sun;
@@ -13,10 +14,38 @@ private:
   double longitude;
   double timeZone;
 
+  int brightness;
+  int startBrightness;
+  unsigned long totalElapsedSeconds = 0UL;
+  time_t startTime;
+
+  Dimmer(int maxBrightness, int minBrightness, long sunriseLenSeconds,
+         long sunsetLenSeconds, double lat, double lon, double tmz,
+         MCP4728_channel_t dacChannel);
+
+  void updateState(time_t currentTime);
+
+  /**
+   * Updates the brightness based on elapsed time and sends the value to the
+   * DAC.
+   *
+   */
+  void run(time_t currentTime);
+  void init();
   void setupMCP();
   void setDacValue(int value);
 
-public:
+  double getTimeZone();
+
+  void setStartTime(TimeElements tm);
+  void setLat(double lat);
+  void setLon(double lon);
+  void setTimeZone(double);
+  void setDate(int, int, int);
+
+private:
+  int sunriseMinPastMidnight;
+  int sunsetMinPastMidnight;
   int maxBright; // = 4095;
   int minBright; // = 500;
   long sunriseSeconds;
@@ -27,30 +56,11 @@ public:
   int sunsetHour;
   int sunsetMin;
 
-  int brightness;
-  int startBrightness;
-  unsigned long totalElapsedSeconds = 0UL;
-  time_t startTime;
-
-  Dimmer();
-  Dimmer(int maxBrightness, int minBrightness, long sunriseLenSeconds,
-         long sunsetLenSeconds);
-  Dimmer(int maxBrightness, int minBrightness, long sunriseLenSeconds,
-         long sunsetLenSeconds, double lat, double lon, double tmz);
-  void setupDimmer(int maxBrightness, int minBrightness, long sunriseLenSeconds,
-         long sunsetLenSeconds, double lat, double lon, double tmz);
-  TimeElements createTimeElements(RV8803 rtc);
-  void setStartTime(TimeElements tm);
-  void setLatLon(double, double);
-  void setTimeZone(double);
-  void setDate(int, int, int);
-  double getLatitude();
-  double getLongitude();
-  double getTimeZone();
-  void calcSunSet();
-  void calcSunRise();
+  void updateSunsetTime();
+  void updateSunriseTime();
   void updateSunriseBrightness();
   void updateSunsetBrightness();
 
-  unsigned long updateElapsedTime(TimeElements tm);
+  void updateTotalElapsedSeconds(time_t currentTime);
+  int timeToMinPastMidnight(time_t t);
 };
