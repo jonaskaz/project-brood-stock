@@ -1,4 +1,5 @@
 #pragma once
+#include "Model.h"
 #include <Adafruit_MCP4728.h>
 #include <TimeLib.h>
 #include <sunset.h>
@@ -10,43 +11,34 @@ public:
   MCP4728_channel_t DACCHANNEL;
   Adafruit_MCP4728 mcp;
   SunSet sun;
+
   double latitude;
   double longitude;
   double timeZone;
-
   int brightness;
   int startBrightness;
   unsigned long totalElapsedSeconds = 0UL;
   time_t startTime;
-
-  Dimmer(int maxBrightness, int minBrightness, long sunriseLenSeconds,
-         long sunsetLenSeconds, double lat, double lon, double tmz,
-         MCP4728_channel_t dacChannel);
-
-  void updateState(time_t currentTime);
 
   /**
    * Updates the brightness based on elapsed time and sends the value to the
    * DAC.
    *
    */
-  void run(time_t currentTime);
-  void init();
-  void setupMCP();
-  void setDacValue(int value);
-
+  void run(Model model);
+  void init(int maxBrightness, int minBrightness, long sunriseLenSeconds,
+            long sunsetLenSeconds, double lat, double lon, double tmz,
+            MCP4728_channel_t dacChannel);
+  void scaleMaxBrightness(int percent);
+  void setTimeZone(double tmz);
   double getTimeZone();
-
-  void setStartTime(TimeElements tm);
-  void setLat(double lat);
-  void setLon(double lon);
-  void setTimeZone(double);
-  void setDate(int, int, int);
+  void setDate(int year, int month, int day);
 
 private:
   int sunriseMinPastMidnight;
   int sunsetMinPastMidnight;
   int maxBright; // = 4095;
+  int scaledMaxBright;
   int minBright; // = 500;
   long sunriseSeconds;
   long sunsetSeconds;
@@ -56,11 +48,13 @@ private:
   int sunsetHour;
   int sunsetMin;
 
+  void setupMCP();
+  void setDacValue(int value);
+  void updateState(time_t currentTime);
   void updateSunsetTime();
   void updateSunriseTime();
   void updateSunriseBrightness();
   void updateSunsetBrightness();
-
   void updateTotalElapsedSeconds(time_t currentTime);
   int timeToMinPastMidnight(time_t t);
 };
