@@ -18,19 +18,19 @@ enum Screen {
 class View {
 public:
   /**
-   * Default constructor for View and lcd. Initializes lcd on default i2c
+   * Default constructor for View and lcd. Initialize lcd on default i2c
    * address.
    */
   View() : lcd(0){};
   Adafruit_LiquidCrystal lcd;
   /**
-   * Starts lcd and turns on backlight
+   * Start lcd and turn on backlight
    */
   void init();
   Screen currentScreen = home;
   bool editMode = false;
   /**
-   * Show the currentScreen with model data on the lcd. Places curser in
+   * Show the currentScreen with model data on the lcd. Places cursor in
    * blinking mode if editing is on
    *
    * @param model with all relevant data
@@ -43,7 +43,7 @@ public:
 
 private:
   /**
-   * Converts a unix time_t timestamp into human readable String. The string
+   * Convert a unix time_t timestamp into human readable String. The string
    * includes time only in the format hour:minute. Hour and minute are zero
    * padded up to length 2
    *
@@ -52,7 +52,7 @@ private:
    */
   String timeToHourMinuteString(time_t t);
   /**
-   * Converts a unix time_t timestamp into human readable String. The string
+   * Convert a unix time_t timestamp into human readable String. The string
    * shows date and time.
    *
    * @param t unix timestamp
@@ -60,7 +60,7 @@ private:
    */
   String timeToDateTimeString(time_t t);
   /**
-   * Pads string t at the beginning with zeros up to length 2.
+   * Pad string t at the beginning with zeros up to length 2.
    *
    * @param t string to pad
    * @return string t with 0 added if length is 1
