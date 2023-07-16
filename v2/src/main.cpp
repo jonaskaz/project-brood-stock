@@ -22,7 +22,7 @@ const long SUNRISELENGTHSECONDS = 3600L;
 const long SUNSETLENGTHSECONDS = 3600L;
 const double LATITUDE = 46.8421690;
 const double LONGITUDE = -88.3803090;
-const double TIMEZONE = -5.0;
+const double TIMEZONE = -4.0;
 const MCP4728_channel_t DACCHANNEL = MCP4728_CHANNEL_A;
 
 View view;
@@ -34,7 +34,6 @@ time_t createTime(uint8_t hour, uint8_t minute);
 
 void setup() {
   Serial.begin(115200);
-
   // TODO: replace these with rtc
   DEFAULT_MANUAL_SUNRISE = createTime(8, 0);
   DEFAULT_MANUAL_SUNSET = createTime(18, 0);
@@ -46,11 +45,13 @@ void setup() {
   view.init();
   controller.init(SS_ADDR, SS_SWITCH);
   dimmer.init(MAXBRIGHTNESS, MINBRIGHTNESS, SUNRISELENGTHSECONDS,
-              SUNSETLENGTHSECONDS, LATITUDE, LONGITUDE, TIMEZONE, DACCHANNEL);
-  delay(1000);
+              SUNSETLENGTHSECONDS, LATITUDE, LONGITUDE, TIMEZONE, DACCHANNEL,
+              model.currentTime);
+  dimmer.setModelSunriseSunsetTime(model);
 }
 
 void loop() {
+  // TODO: add rtc and update model.currentTime
   controller.run(model, view);
   dimmer.run(model);
 }

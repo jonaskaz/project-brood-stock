@@ -22,6 +22,9 @@ void View::showScreen(Model model) {
   case currentTime:
     showCurrentTime(model.currentTime);
     break;
+  case currentBrightness:
+    showCurrentBrightnessPercent(model.brightnessPercent);
+    break;
   case manualMode:
     showManualMode(model.manualTiming);
     break;
@@ -111,6 +114,13 @@ void View::showCurrentTime(time_t currentTime) {
   lcd.setCursor(0, 1);
   String currentTimeString = timeToDateTimeString(currentTime);
   lcd.print(currentTimeString);
+}
+
+void View::showCurrentBrightnessPercent(int currentBrightnessPercent) {
+  lcd.setCursor(0, 0);
+  lcd.print("Brightness Now:");
+  lcd.setCursor(0, 1);
+  lcd.print(currentBrightnessPercent);
 }
 
 void View::showManualMode(bool manual) {
