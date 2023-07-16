@@ -72,7 +72,6 @@ private:
 
   void setupMCP();
   void setupSun(time_t currentTime, double tmz);
-  void setTimeZone(double tmz);
   void setDate(int year, int month, int day);
   void setDacValue(int value);
   /**
@@ -118,4 +117,15 @@ private:
    * @return int minutes since midnight
    */
   int timeToMinPastMidnight(time_t t);
+  /**
+   * Convert and hour and minute into a unix timestamp based on the current
+   * date.
+   *
+   * @param hour the hour to convert
+   * @param the minute to convert
+   * @param now the current time in unix format
+   *
+   * @return the hour and minute today in unix format
+   */
+  time_t hourMinuteToTime(int hour, int minute, time_t now);
 };

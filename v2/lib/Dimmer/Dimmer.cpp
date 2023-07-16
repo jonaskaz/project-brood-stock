@@ -44,22 +44,39 @@ void Dimmer::run(Model &model) {
   setDacValue(brightness);
 }
 
+void Dimmer::scaleMaxBrightness(int percent) {
+  scaledMaxBright = maxBright * (percent / 100);
+}
+
+void Dimmer::setModelSunriseSunsetTime(Model &model) {
+  model.sunriseTime =
+      hourMinuteToTime(sunriseHour, sunriseMin, model.currentTime);
+  model.sunsetTime = hourMinuteToTime(sunsetHour, sunsetMin, model.currentTime);
+}
+
+void Dimmer::setupMCP() {
+  if (!mcp.begin()) {
+    Serial.println("Failed to find MCP4728 chip. Freezing");
+    while (1) {
+      delay(10);
+    }
+  }
+}
+
 void Dimmer::setupSun(time_t currentTime, double tmz) {
   sun.setTZOffset(tmz);
   setDate(year(currentTime), month(currentTime), day(currentTime));
   sun.setPosition(latitude, longitude, timeZone);
 }
 
-int Dimmer::timeToMinPastMidnight(time_t t) {
-  int minutes = hour(t) * 60;
-  minutes += minute(t);
-  return minutes;
+void Dimmer::setDate(int year, int month, int day) {
+  sun.setCurrentDate(year, month, day);
 }
 
-time_t hourMinuteToTime(int hour, int minute, time_t now) {
-  TimeElements tm = {0,          minute,          hour, weekday(now), day(now),
-                     month(now), year(now) - 1970};
-  return makeTime(tm);
+void Dimmer::setDacValue(int value) {
+  value = constrain(value, minBright, scaledMaxBright);
+  mcp.setChannelValue(DACCHANNEL, value, MCP4728_VREF_INTERNAL,
+                      MCP4728_GAIN_2X);
 }
 
 void Dimmer::updateState(time_t currentTime) {
@@ -80,48 +97,6 @@ void Dimmer::updateState(time_t currentTime) {
   }
 }
 
-void Dimmer::setupMCP() {
-  while (!Serial)
-    delay(10);
-  if (!mcp.begin()) {
-    Serial.println("Failed to find MCP4728 chip. Freezing");
-    while (1) {
-      delay(10);
-    }
-  }
-}
-
-void Dimmer::setDacValue(int value) {
-  value = constrain(value, minBright, scaledMaxBright);
-  mcp.setChannelValue(DACCHANNEL, value, MCP4728_VREF_INTERNAL,
-                      MCP4728_GAIN_2X);
-}
-
-void Dimmer::updateTotalElapsedSeconds(time_t currentTime) {
-  totalElapsedSeconds = currentTime - startTime;
-}
-
-void Dimmer::setDate(int year, int month, int day) {
-  sun.setCurrentDate(year, month, day);
-}
-
-void Dimmer::setModelSunriseSunsetTime(Model &model) {
-  model.sunriseTime =
-      hourMinuteToTime(sunriseHour, sunriseMin, model.currentTime);
-  model.sunsetTime = hourMinuteToTime(sunsetHour, sunsetMin, model.currentTime);
-}
-
-void Dimmer::scaleMaxBrightness(int percent) {
-  scaledMaxBright = maxBright * (percent / 100);
-}
-
-void Dimmer::updateSunriseBrightness() {
-  unsigned long brightnessBuffer =
-      map(startBrightness, minBright, maxBright, 0, sunriseSeconds);
-  brightness = _min(maxBright, map(totalElapsedSeconds + brightnessBuffer, 0,
-                                   sunriseSeconds, minBright, maxBright));
-}
-
 void Dimmer::updateSunsetBrightness() {
   unsigned long brightnessBuffer =
       map(startBrightness, maxBright, minBright, 0, sunsetSeconds);
@@ -135,8 +110,31 @@ void Dimmer::updateSunriseTime() {
   sunriseMin = sunriseMinPastMidnight % 60;
 }
 
+void Dimmer::updateSunriseBrightness() {
+  unsigned long brightnessBuffer =
+      map(startBrightness, minBright, maxBright, 0, sunriseSeconds);
+  brightness = _min(maxBright, map(totalElapsedSeconds + brightnessBuffer, 0,
+                                   sunriseSeconds, minBright, maxBright));
+}
+
 void Dimmer::updateSunsetTime() {
   sunsetMinPastMidnight = sun.calcSunset();
   sunsetHour = sunsetMinPastMidnight / 60;
   sunsetMin = sunsetMinPastMidnight % 60;
+}
+
+void Dimmer::updateTotalElapsedSeconds(time_t currentTime) {
+  totalElapsedSeconds = currentTime - startTime;
+}
+
+int Dimmer::timeToMinPastMidnight(time_t t) {
+  int minutes = hour(t) * 60;
+  minutes += minute(t);
+  return minutes;
+}
+
+time_t Dimmer::hourMinuteToTime(int hour, int minute, time_t now) {
+  TimeElements tm = {0,          minute,          hour, weekday(now), day(now),
+                     month(now), year(now) - 1970};
+  return makeTime(tm);
 }
