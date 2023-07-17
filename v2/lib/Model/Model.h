@@ -13,7 +13,7 @@ public:
   void closePreferences();
 
   time_t currentTime;
-  int brightness;
+  int brightnessPercent;
   long sunriseLength;
   long sunsetLength;
   time_t sunsetTime;

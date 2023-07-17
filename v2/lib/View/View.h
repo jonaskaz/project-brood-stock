@@ -7,12 +7,13 @@
 enum Screen {
   home = 0,
   currentTime = 1,
-  manualMode = 2,
-  manualSunrise = 3,
-  manualSunset = 4,
-  sunriseLength = 5,
-  sunsetLength = 6,
-  maxBrightnessPercent = 7
+  currentBrightness = 2,
+  manualMode = 3,
+  manualSunrise = 4,
+  manualSunset = 5,
+  sunriseLength = 6,
+  sunsetLength = 7,
+  maxBrightnessPercent = 8,
 };
 
 class View {
@@ -68,6 +69,7 @@ private:
   String zeroPadTimeString(String t);
   void showHome(time_t sunrise, time_t sunset);
   void showCurrentTime(time_t currentTime);
+  void showCurrentBrightnessPercent(int currentBrightnessPercent);
   void showManualMode(bool manual);
   void showManualSunrise(time_t sunriseTime);
   void showManualSunset(time_t sunsetTime);

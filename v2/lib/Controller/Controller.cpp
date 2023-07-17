@@ -51,6 +51,8 @@ void Controller::updateModelFromEncoder(Model &model, View &view) {
     break;
   case currentTime:
     break;
+  case currentBrightness:
+    break;
   case manualSunrise:
     model.manualSunriseTime += (getEncoderDiff() * 60);
     break;
