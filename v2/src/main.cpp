@@ -3,6 +3,7 @@
 #include "Model.h"
 #include "View.h"
 #include <Arduino.h>
+#include <RTClib.h>
 #include <TimeLib.h>
 
 // Controller parameters
@@ -12,8 +13,10 @@ const char *PREFERENCES_NS = "fish";
 const long DEFAULT_SUNRISE_LENGTH = 60;  // Minutes
 const long DEFAULT_SUNSET_LENGTH = 60;   // Minutes
 const long DEFAULT_MAX_BRIGHTNESS = 100; // Percent
-time_t DEFAULT_MANUAL_SUNRISE;
-time_t DEFAULT_MANUAL_SUNSET;
+const int DEFAULT_MANUAL_SUNRISE_HOUR = 8;
+const int DEFAULT_MANUAL_SUNRISE_MINUTE = 0;
+const int DEFAULT_MANUAL_SUNSET_HOUR = 18;
+const int DEFAULT_MANUAL_SUNSET_MINUTE = 0;
 
 // Dimmer parameters
 const int MAXBRIGHTNESS = 4095;
@@ -29,16 +32,18 @@ View view;
 Model model;
 Controller controller;
 Dimmer dimmer;
+RTC_DS3231 rtc;
 
 time_t createTime(uint8_t hour, uint8_t minute);
+void setupRTC();
 
 void setup() {
   Serial.begin(115200);
-  // TODO: replace these with rtc
-  DEFAULT_MANUAL_SUNRISE = createTime(8, 0);
-  DEFAULT_MANUAL_SUNSET = createTime(18, 0);
-  model.currentTime = createTime(7, 40);
-
+  time_t DEFAULT_MANUAL_SUNRISE =
+      createTime(DEFAULT_MANUAL_SUNRISE_HOUR, DEFAULT_MANUAL_SUNRISE_MINUTE);
+  time_t DEFAULT_MANUAL_SUNSET =
+      createTime(DEFAULT_MANUAL_SUNSET_HOUR, DEFAULT_MANUAL_SUNSET_MINUTE);
+  model.currentTime = rtc.now().unixtime();
   model.init(PREFERENCES_NS, DEFAULT_SUNRISE_LENGTH, DEFAULT_SUNSET_LENGTH,
              DEFAULT_MAX_BRIGHTNESS, DEFAULT_MANUAL_SUNRISE,
              DEFAULT_MANUAL_SUNSET);
@@ -51,13 +56,33 @@ void setup() {
 }
 
 void loop() {
-  // TODO: add rtc and update model.currentTime
+  model.currentTime = rtc.now().unixtime();
   controller.run(model, view);
   dimmer.run(model);
 }
 
 time_t createTime(uint8_t hour, uint8_t minute) {
-  uint8_t year = 53;
-  TimeElements tm = {1, minute, hour, 6, 15, 7, year};
+  DateTime now = rtc.now();
+  uint8_t year = now.year() - 1970;
+  TimeElements tm = {1,         minute,      hour, now.dayOfTheWeek(),
+                     now.day(), now.month(), year};
   return makeTime(tm);
+}
+
+void setupRTC() {
+  if (!rtc.begin()) {
+    Serial.println("Couldn't find RTC");
+    Serial.flush();
+    while (1)
+      delay(10);
+  }
+  if (rtc.lostPower()) {
+    Serial.println("RTC lost power, let's set the time!");
+    // When time needs to be set on a new device, or after a power loss, the
+    // following line sets the RTC to the date & time this sketch was compiled
+    rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
+    // This line sets the RTC with an explicit date & time, for example to set
+    // January 21, 2014 at 3am you would call:
+    // rtc.adjust(DateTime(2014, 1, 21, 3, 0, 0));
+  }
 }
