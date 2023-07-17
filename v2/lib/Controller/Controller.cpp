@@ -21,6 +21,7 @@ void Controller::run(Model &model, View &view) {
   if (!ss.digitalRead(interruptPin)) {
     handleButtonPress(model, view);
     resetEncoder();
+    model.saveModel();
   }
   if (view.editMode) {
     updateModelFromEncoder(model, view);
@@ -64,9 +65,11 @@ void Controller::updateModelFromEncoder(Model &model, View &view) {
     break;
   case sunriseLength:
     model.sunriseLength += getEncoderDiff();
+    model.sunriseLength = constrain(model.sunriseLength, 0, 3600);
     break;
   case sunsetLength:
     model.sunsetLength += getEncoderDiff();
+    model.sunsetLength = constrain(model.sunsetLength, 0, 3600);
     break;
   case maxBrightnessPercent:
     model.maxBrightnessPercent += getEncoderDiff();
@@ -77,7 +80,6 @@ void Controller::updateModelFromEncoder(Model &model, View &view) {
   }
   resetEncoder();
   view.lcd.print("                   ");
-  model.saveModel();
 }
 
 void Controller::resetEncoder() {

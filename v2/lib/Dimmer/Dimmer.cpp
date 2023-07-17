@@ -26,15 +26,23 @@ void Dimmer::run(Model &model) {
   updateState(model.currentTime);
   switch (state) {
   case Sunrise:
-    updateSunsetTime();
-    model.sunsetTime =
-        hourMinuteToTime(sunsetHour, sunsetMin, model.currentTime);
+    if (model.manualTiming) {
+      setManualSunsetSunriseTimes(model);
+    } else {
+      updateSunriseTime();
+      model.sunriseTime =
+          hourMinuteToTime(sunriseHour, sunriseMin, model.currentTime);
+    }
     updateSunriseBrightness();
     break;
   case Sunset:
-    updateSunriseTime();
-    model.sunriseTime =
-        hourMinuteToTime(sunriseHour, sunriseMin, model.currentTime);
+    if (model.manualTiming) {
+      setManualSunsetSunriseTimes(model);
+    } else {
+      updateSunsetTime();
+      model.sunsetTime =
+          hourMinuteToTime(sunsetHour, sunsetMin, model.currentTime);
+    }
     updateSunsetBrightness();
     break;
   default:
@@ -92,6 +100,15 @@ void Dimmer::setDacValue(int value) {
   value = constrain(value, minBright, scaledMaxBright);
   mcp.setChannelValue(DACCHANNEL, value, MCP4728_VREF_INTERNAL,
                       MCP4728_GAIN_2X);
+}
+
+void Dimmer::setManualSunsetSunriseTimes(Model &model) {
+  sunriseHour = hour(model.manualSunriseTime);
+  sunriseMin = minute(model.manualSunriseTime);
+  sunriseMinPastMidnight = (sunriseHour * 60) + sunriseMin;
+  sunsetHour = hour(model.manualSunsetTime);
+  sunsetMin = minute(model.manualSunsetTime);
+  sunsetMinPastMidnight = (sunsetHour * 60) + sunsetMin;
 }
 
 void Dimmer::updateState(time_t currentTime) {

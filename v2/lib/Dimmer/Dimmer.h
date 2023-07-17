@@ -75,6 +75,7 @@ private:
   void setupSun(time_t currentTime, double tmz);
   void setDate(int year, int month, int day);
   void setDacValue(int value);
+  void setManualSunsetSunriseTimes(Model &model);
   /**
    * Update the state of the dimmer based on the current time. If a new state
    * change occurs, reset the startBrightness and startTime. If the current time
