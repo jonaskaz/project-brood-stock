@@ -36,7 +36,8 @@ public:
   /**
    * Updates dimmer state and then the brightness based on elapsed time and
    * sends the value to the DAC. Updates the model with the latest sunrise and
-   * sunset times as well as brightness.
+   * sunset times as well as brightness. Resets startBrightness and
+   * startTime if sunrise or sunset length are changed live.
    *
    * @param model The data model
    */

@@ -11,6 +11,7 @@ void Dimmer::init(int maxBrightness, int minBrightness, long sunriseLenSeconds,
   sunsetSeconds = sunsetLenSeconds;
   brightness = minBright;
   startBrightness = minBright;
+  startTime = currentTime;
   latitude = lat;
   longitude = lon;
   timeZone = tmz;
@@ -39,7 +40,21 @@ void Dimmer::run(Model &model) {
   default:
     break;
   }
-  model.brightnessPercent = (brightness / maxBright) * 100;
+  if (sunriseSeconds != (model.sunriseLength * 60)) {
+    sunriseSeconds = model.sunriseLength * 60;
+    if (state == Sunrise) {
+      startBrightness = brightness;
+      startTime = model.currentTime;
+    }
+  }
+  if (sunsetSeconds != (model.sunsetLength * 60)) {
+    sunsetSeconds = model.sunsetLength * 60;
+    if (state == Sunset) {
+      startBrightness = brightness;
+      startTime = model.currentTime;
+    }
+  }
+  model.brightnessPercent = ((float)brightness / (float)maxBright) * 100.0;
   scaleMaxBrightness(model.maxBrightnessPercent);
   setDacValue(brightness);
 }

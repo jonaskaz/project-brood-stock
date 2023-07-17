@@ -10,7 +10,7 @@
 const int SS_SWITCH = 24;
 const int SS_ADDR = 0x36;
 const char *PREFERENCES_NS = "fish";
-const long DEFAULT_SUNRISE_LENGTH = 60;  // Minutes
+const long DEFAULT_SUNRISE_LENGTH = 1;   // Minutes
 const long DEFAULT_SUNSET_LENGTH = 60;   // Minutes
 const long DEFAULT_MAX_BRIGHTNESS = 100; // Percent
 const int DEFAULT_MANUAL_SUNRISE_HOUR = 8;
@@ -21,12 +21,12 @@ const int DEFAULT_MANUAL_SUNSET_MINUTE = 0;
 // Dimmer parameters
 const int MAXBRIGHTNESS = 4095;
 const int MINBRIGHTNESS = 300;
-const long SUNRISELENGTHSECONDS = 3600L;
-const long SUNSETLENGTHSECONDS = 3600L;
 const double LATITUDE = 46.8421690;
 const double LONGITUDE = -88.3803090;
 const double TIMEZONE = -4.0;
 const MCP4728_channel_t DACCHANNEL = MCP4728_CHANNEL_A;
+
+uint8_t prevLogMinute = 0;
 
 View view;
 Model model;
@@ -36,6 +36,9 @@ RTC_DS3231 rtc;
 
 time_t createTime(uint8_t hour, uint8_t minute);
 void setupRTC();
+void logInfo(uint8_t hour, uint8_t minute, uint8_t second,
+             int brightnessPercent, unsigned long totalElapsedSeconds,
+             Dimmer::State dimmerState);
 
 void setup() {
   Serial.begin(115200);
@@ -50,9 +53,9 @@ void setup() {
              DEFAULT_MANUAL_SUNSET);
   view.init();
   controller.init(SS_ADDR, SS_SWITCH);
-  dimmer.init(MAXBRIGHTNESS, MINBRIGHTNESS, SUNRISELENGTHSECONDS,
-              SUNSETLENGTHSECONDS, LATITUDE, LONGITUDE, TIMEZONE, DACCHANNEL,
-              model.currentTime);
+  dimmer.init(MAXBRIGHTNESS, MINBRIGHTNESS, model.sunriseLength * 60,
+              model.sunsetLength * 60, LATITUDE, LONGITUDE, TIMEZONE,
+              DACCHANNEL, model.currentTime);
   dimmer.setModelSunriseSunsetTime(model);
 }
 
@@ -60,6 +63,11 @@ void loop() {
   model.currentTime = rtc.now().unixtime();
   controller.run(model, view);
   dimmer.run(model);
+  if (prevLogMinute != rtc.now().minute()) {
+    prevLogMinute = rtc.now().minute();
+    logInfo(rtc.now().hour(), rtc.now().minute(), rtc.now().second(),
+            model.brightnessPercent, dimmer.totalElapsedSeconds, dimmer.state);
+  }
 }
 
 time_t createTime(uint8_t hour, uint8_t minute) {
@@ -83,4 +91,26 @@ void setupRTC() {
     // following line sets the RTC to the date & time this sketch was compiled
     rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
   }
+}
+
+/**
+ * Log a row of info in the following format:
+ *
+ * hour,minute,second,brightnessPercent,totalElapsedSeconds,dimmerState
+ *
+ */
+void logInfo(uint8_t hour, uint8_t minute, uint8_t second,
+             int brightnessPercent, unsigned long totalElapsedSeconds,
+             Dimmer::State dimmerState) {
+  Serial.print(hour);
+  Serial.print(",");
+  Serial.print(minute);
+  Serial.print(",");
+  Serial.print(second);
+  Serial.print(",");
+  Serial.print(brightnessPercent);
+  Serial.print(",");
+  Serial.print(totalElapsedSeconds);
+  Serial.print(",");
+  Serial.println(dimmerState);
 }
