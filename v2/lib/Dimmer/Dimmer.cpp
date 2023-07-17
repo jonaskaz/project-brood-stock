@@ -82,18 +82,20 @@ void Dimmer::setDacValue(int value) {
 void Dimmer::updateState(time_t currentTime) {
   updateTotalElapsedSeconds(currentTime);
   int minutes = timeToMinPastMidnight(currentTime);
-  if (minutes > sunriseMinPastMidnight) {
+  if (minutes > sunsetMinPastMidnight) {
+    if (state == Sunrise) {
+      startTime = currentTime;
+      startBrightness = brightness;
+    }
+    state = Sunset;
+  } else if (minutes > sunriseMinPastMidnight) {
     if (state == Sunset) {
       startTime = currentTime;
       startBrightness = brightness;
     }
     state = Sunrise;
   } else {
-    if (state == Sunrise) {
-      startTime = currentTime;
-      startBrightness = brightness;
-    }
-    state = Sunset;
+    setDate(year(currentTime), month(currentTime), day(currentTime));
   }
 }
 

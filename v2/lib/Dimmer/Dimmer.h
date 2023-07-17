@@ -76,7 +76,9 @@ private:
   void setDacValue(int value);
   /**
    * Update the state of the dimmer based on the current time. If a new state
-   * change occurs, reset the startBrightness and startTime
+   * change occurs, reset the startBrightness and startTime. If the current time
+   * is before the sunrise, a new day has passed and SunSet is updated with the
+   * current date.
    *
    * @param currentTime the time now in unix format
    */

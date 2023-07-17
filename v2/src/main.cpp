@@ -39,6 +39,7 @@ void setupRTC();
 
 void setup() {
   Serial.begin(115200);
+  setupRTC();
   time_t DEFAULT_MANUAL_SUNRISE =
       createTime(DEFAULT_MANUAL_SUNRISE_HOUR, DEFAULT_MANUAL_SUNRISE_MINUTE);
   time_t DEFAULT_MANUAL_SUNSET =
@@ -81,8 +82,5 @@ void setupRTC() {
     // When time needs to be set on a new device, or after a power loss, the
     // following line sets the RTC to the date & time this sketch was compiled
     rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
-    // This line sets the RTC with an explicit date & time, for example to set
-    // January 21, 2014 at 3am you would call:
-    // rtc.adjust(DateTime(2014, 1, 21, 3, 0, 0));
   }
 }
