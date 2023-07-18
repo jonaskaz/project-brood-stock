@@ -121,6 +121,7 @@ void View::showCurrentBrightnessPercent(int currentBrightnessPercent) {
   lcd.print("Brightness Now:");
   lcd.setCursor(0, 1);
   lcd.print(currentBrightnessPercent);
+  lcd.print("%");
 }
 
 void View::showManualMode(bool manual) {

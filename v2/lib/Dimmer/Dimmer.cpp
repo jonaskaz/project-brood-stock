@@ -11,6 +11,7 @@ void Dimmer::init(int maxBrightness, int minBrightness, long sunriseLenSeconds,
   sunsetSeconds = sunsetLenSeconds;
   brightness = minBright;
   startBrightness = minBright;
+  startTime = currentTime;
   latitude = lat;
   longitude = lon;
   timeZone = tmz;
@@ -25,21 +26,43 @@ void Dimmer::run(Model &model) {
   updateState(model.currentTime);
   switch (state) {
   case Sunrise:
-    updateSunsetTime();
-    model.sunsetTime =
-        hourMinuteToTime(sunsetHour, sunsetMin, model.currentTime);
+    if (model.manualTiming) {
+      setManualSunsetSunriseTimes(model);
+    } else {
+      updateSunriseTime();
+      model.sunriseTime =
+          hourMinuteToTime(sunriseHour, sunriseMin, model.currentTime);
+    }
     updateSunriseBrightness();
     break;
   case Sunset:
-    updateSunriseTime();
-    model.sunriseTime =
-        hourMinuteToTime(sunriseHour, sunriseMin, model.currentTime);
+    if (model.manualTiming) {
+      setManualSunsetSunriseTimes(model);
+    } else {
+      updateSunsetTime();
+      model.sunsetTime =
+          hourMinuteToTime(sunsetHour, sunsetMin, model.currentTime);
+    }
     updateSunsetBrightness();
     break;
   default:
     break;
   }
-  model.brightnessPercent = (brightness / maxBright) * 100;
+  if (sunriseSeconds != (model.sunriseLength * 60)) {
+    sunriseSeconds = model.sunriseLength * 60;
+    if (state == Sunrise) {
+      startBrightness = brightness;
+      startTime = model.currentTime;
+    }
+  }
+  if (sunsetSeconds != (model.sunsetLength * 60)) {
+    sunsetSeconds = model.sunsetLength * 60;
+    if (state == Sunset) {
+      startBrightness = brightness;
+      startTime = model.currentTime;
+    }
+  }
+  model.brightnessPercent = ((float)brightness / (float)maxBright) * 100.0;
   scaleMaxBrightness(model.maxBrightnessPercent);
   setDacValue(brightness);
 }
@@ -79,21 +102,32 @@ void Dimmer::setDacValue(int value) {
                       MCP4728_GAIN_2X);
 }
 
+void Dimmer::setManualSunsetSunriseTimes(Model &model) {
+  sunriseHour = hour(model.manualSunriseTime);
+  sunriseMin = minute(model.manualSunriseTime);
+  sunriseMinPastMidnight = (sunriseHour * 60) + sunriseMin;
+  sunsetHour = hour(model.manualSunsetTime);
+  sunsetMin = minute(model.manualSunsetTime);
+  sunsetMinPastMidnight = (sunsetHour * 60) + sunsetMin;
+}
+
 void Dimmer::updateState(time_t currentTime) {
   updateTotalElapsedSeconds(currentTime);
   int minutes = timeToMinPastMidnight(currentTime);
-  if (minutes > sunriseMinPastMidnight) {
+  if (minutes > sunsetMinPastMidnight) {
+    if (state == Sunrise) {
+      startTime = currentTime;
+      startBrightness = brightness;
+    }
+    state = Sunset;
+  } else if (minutes > sunriseMinPastMidnight) {
     if (state == Sunset) {
       startTime = currentTime;
       startBrightness = brightness;
     }
     state = Sunrise;
   } else {
-    if (state == Sunrise) {
-      startTime = currentTime;
-      startBrightness = brightness;
-    }
-    state = Sunset;
+    setDate(year(currentTime), month(currentTime), day(currentTime));
   }
 }
 

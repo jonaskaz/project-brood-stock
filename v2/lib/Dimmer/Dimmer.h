@@ -36,7 +36,8 @@ public:
   /**
    * Updates dimmer state and then the brightness based on elapsed time and
    * sends the value to the DAC. Updates the model with the latest sunrise and
-   * sunset times as well as brightness.
+   * sunset times as well as brightness. Resets startBrightness and
+   * startTime if sunrise or sunset length are changed live.
    *
    * @param model The data model
    */
@@ -74,9 +75,12 @@ private:
   void setupSun(time_t currentTime, double tmz);
   void setDate(int year, int month, int day);
   void setDacValue(int value);
+  void setManualSunsetSunriseTimes(Model &model);
   /**
    * Update the state of the dimmer based on the current time. If a new state
-   * change occurs, reset the startBrightness and startTime
+   * change occurs, reset the startBrightness and startTime. If the current time
+   * is before the sunrise, a new day has passed and SunSet is updated with the
+   * current date.
    *
    * @param currentTime the time now in unix format
    */
