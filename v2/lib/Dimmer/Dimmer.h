@@ -63,6 +63,7 @@ private:
   int maxBright;
   int scaledMaxBright;
   int minBright;
+  int daylightSavingsTime; //0 for no DST and 1 for DST offset
   long sunriseSeconds;
   long sunsetSeconds;
 
@@ -72,10 +73,18 @@ private:
   int sunsetMin;
 
   void setupMCP();
-  void setupSun(time_t currentTime, double tmz);
+  void setupSun(time_t currentTime);
   void setDate(int year, int month, int day);
   void setDacValue(int value);
   void setManualSunsetSunriseTimes(Model &model);
+  /**
+   * Calculates the current daylight savings time and sets it if changed.
+   * 
+   * @param month current month
+   * @param day current day
+   * @param dayOfWeek current day of week - Sunday is 1
+  */
+  void updateDaylightSavings(int month, int day, int dayOfWeek);
   /**
    * Update the state of the dimmer based on the current time. If a new state
    * change occurs, reset the startBrightness and startTime. If the current time

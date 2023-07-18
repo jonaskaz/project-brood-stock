@@ -24,7 +24,7 @@ const int MAXBRIGHTNESS = 4095;
 const int MINBRIGHTNESS = 300;
 const double LATITUDE = 46.8421690;
 const double LONGITUDE = -88.3803090;
-const double TIMEZONE = -4.0;
+const double TIMEZONE = -5.0;
 const MCP4728_channel_t DACCHANNEL = MCP4728_CHANNEL_A;
 
 uint8_t prevLogMinute = 0;

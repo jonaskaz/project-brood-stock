@@ -12,12 +12,13 @@ void Dimmer::init(int maxBrightness, int minBrightness, long sunriseLenSeconds,
   brightness = minBright;
   startBrightness = minBright;
   startTime = currentTime;
+  daylightSavingsTime = 1;
   latitude = lat;
   longitude = lon;
   timeZone = tmz;
   DACCHANNEL = dacChannel;
   setupMCP();
-  setupSun(currentTime, tmz);
+  setupSun(currentTime);
   updateSunriseTime();
   updateSunsetTime();
 }
@@ -86,10 +87,13 @@ void Dimmer::setupMCP() {
   }
 }
 
-void Dimmer::setupSun(time_t currentTime, double tmz) {
-  sun.setTZOffset(tmz);
-  setDate(year(currentTime), month(currentTime), day(currentTime));
-  sun.setPosition(latitude, longitude, timeZone);
+void Dimmer::setupSun(time_t currentTime) {
+  int m = month(currentTime);
+  int d = day(currentTime);
+  int dayOfWeek = weekday(currentTime);
+  setDate(year(currentTime), m, d);
+  updateDaylightSavings(m, d, dayOfWeek);
+  sun.setPosition(latitude, longitude, timeZone + daylightSavingsTime);
 }
 
 void Dimmer::setDate(int year, int month, int day) {
@@ -111,6 +115,55 @@ void Dimmer::setManualSunsetSunriseTimes(Model &model) {
   sunsetMinPastMidnight = (sunsetHour * 60) + sunsetMin;
 }
 
+void Dimmer::updateDaylightSavings(int month, int day, int dayOfWeek){
+  int tempDST = daylightSavingsTime;
+  
+  if(daylightSavingsTime == 1){
+    if(month > 11 || month < 3){
+      daylightSavingsTime = 0;
+    }else if(month == 3){
+      if(day < 8){
+        daylightSavingsTime = 0;
+      }else if(day >= 8 && day <= 14){
+        if(day < (dayOfWeek + 7)){
+          daylightSavingsTime = 0;
+        }
+      }
+    }else if(month == 11){
+      if(day > 7){
+        daylightSavingsTime = 0;
+      }else{
+        if(day >= dayOfWeek){
+          daylightSavingsTime = 0;
+        }
+      }
+    }
+  }else if(daylightSavingsTime == 0){
+    if(month > 3 && month < 11){
+      daylightSavingsTime = 1;
+    }else if(month == 3){
+      if(day > 14){
+        daylightSavingsTime = 1;
+      }else if(day >= 8 && day <= 14){
+        if(day >= (dayOfWeek + 7)){
+          daylightSavingsTime = 1;
+        }
+      }
+    }else if(month == 11){
+      if(day <= 7){
+        if(day < dayOfWeek){
+          daylightSavingsTime = 1;
+        }
+      }
+    }
+  }
+
+  //daylight savings changed, change the timezone offset of sun
+  if(tempDST != daylightSavingsTime){
+    sun.setTZOffset(timeZone + daylightSavingsTime);
+  }
+}
+
 void Dimmer::updateState(time_t currentTime) {
   updateTotalElapsedSeconds(currentTime);
   int minutes = timeToMinPastMidnight(currentTime);
@@ -128,6 +181,7 @@ void Dimmer::updateState(time_t currentTime) {
     state = Sunrise;
   } else {
     setDate(year(currentTime), month(currentTime), day(currentTime));
+    updateDaylightSavings(month(currentTime), day(currentTime), weekday(currentTime));
   }
 }
 
