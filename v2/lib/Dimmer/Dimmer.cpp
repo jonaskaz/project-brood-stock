@@ -12,7 +12,7 @@ void Dimmer::init(int maxBrightness, int minBrightness, long sunriseLenSeconds,
   brightness = minBright;
   startBrightness = minBright;
   startTime = currentTime;
-  daylightSavingsTime = 1;
+  daylightSavingsTime = -1.0;
   latitude = lat;
   longitude = lon;
   timeZone = tmz;
@@ -21,6 +21,18 @@ void Dimmer::init(int maxBrightness, int minBrightness, long sunriseLenSeconds,
   setupSun(currentTime);
   updateSunriseTime();
   updateSunsetTime();
+}
+
+void Dimmer::clearDSTflag(){
+  DSTChangeflag = 0;
+}
+
+int Dimmer::getDSTflag(){
+  return DSTChangeflag;
+}
+
+double Dimmer::getDSTValue(){
+  return daylightSavingsTime;
 }
 
 void Dimmer::run(Model &model) {
@@ -116,50 +128,45 @@ void Dimmer::setManualSunsetSunriseTimes(Model &model) {
 }
 
 void Dimmer::updateDaylightSavings(int month, int day, int dayOfWeek){
-  int tempDST = daylightSavingsTime;
   
-  if(daylightSavingsTime == 1){
-    if(month > 11 || month < 3){
-      daylightSavingsTime = 0;
-    }else if(month == 3){
-      if(day < 8){
-        daylightSavingsTime = 0;
-      }else if(day >= 8 && day <= 14){
-        if(day < (dayOfWeek + 7)){
-          daylightSavingsTime = 0;
-        }
+  double tempDST = daylightSavingsTime;
+
+  if(month > 11 || month < 3){
+    daylightSavingsTime = 0.0;
+  }else if(month > 3 && month < 11){
+    daylightSavingsTime = 1.0;
+  }else if(month == 3){
+    if(day < 8){
+      daylightSavingsTime = 0.0;
+    }else if(day >= 8 && day < 14){
+      if(day < (dayOfWeek + 7)){
+        daylightSavingsTime = 0.0;
+      }else if(day >= (dayOfWeek + 7)){
+        daylightSavingsTime = 1.0;
       }
-    }else if(month == 11){
-      if(day > 7){
-        daylightSavingsTime = 0;
-      }else{
-        if(day >= dayOfWeek){
-          daylightSavingsTime = 0;
-        }
-      }
+    }else if(day >= 14){
+      daylightSavingsTime = 1.0;
     }
-  }else if(daylightSavingsTime == 0){
-    if(month > 3 && month < 11){
-      daylightSavingsTime = 1;
-    }else if(month == 3){
-      if(day > 14){
-        daylightSavingsTime = 1;
-      }else if(day >= 8 && day <= 14){
-        if(day >= (dayOfWeek + 7)){
-          daylightSavingsTime = 1;
-        }
-      }
-    }else if(month == 11){
-      if(day <= 7){
-        if(day < dayOfWeek){
-          daylightSavingsTime = 1;
-        }
+  }else if(month == 11){
+    if(day > 7){
+      daylightSavingsTime = 0.0;
+    }else{
+      if(day >= dayOfWeek){
+        daylightSavingsTime = 0.0;
+      }else if(day < dayOfWeek){
+        daylightSavingsTime = 1.0;
       }
     }
   }
 
-  //daylight savings changed, change the timezone offset of sun
-  if(tempDST != daylightSavingsTime){
+  //for changing the clock
+  //initial setup shouldn't have to adjust the clock
+  //so we check to see if this is our first time or not 
+  //with -1 representing our first time setting DST value
+  if((tempDST >= 0) && (tempDST != daylightSavingsTime)){
+    DSTChangeflag = 1;
+    sun.setTZOffset(timeZone + daylightSavingsTime);
+  }else{
     sun.setTZOffset(timeZone + daylightSavingsTime);
   }
 }

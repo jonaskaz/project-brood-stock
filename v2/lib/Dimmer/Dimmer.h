@@ -34,6 +34,28 @@ public:
             long sunsetLenSeconds, double lat, double lon, double tmz,
             MCP4728_channel_t dacChannel, time_t currentTime);
   /**
+   * clears the DSTflag variable setting it back to 0
+  */
+  void clearDSTflag();
+
+  /**
+   * returns the DSTflag variable to be used in main for determining 
+   * rollback or spring ahead
+   * 
+   * @return DSTflag 
+  */
+  int getDSTflag();
+
+  /**
+   * returns the current value of daylight savings time
+   * 1 for spring ahead
+   * 0 for a roll back
+   * 
+   * @return daylightSavingsTime
+  */
+  double getDSTValue();
+  
+  /**
    * Updates dimmer state and then the brightness based on elapsed time and
    * sends the value to the DAC. Updates the model with the latest sunrise and
    * sunset times as well as brightness. Resets startBrightness and
@@ -63,7 +85,8 @@ private:
   int maxBright;
   int scaledMaxBright;
   int minBright;
-  int daylightSavingsTime; //0 for no DST and 1 for DST offset
+  int DSTChangeflag;
+  double daylightSavingsTime; //0 for no DST and 1 for DST
   long sunriseSeconds;
   long sunsetSeconds;
 

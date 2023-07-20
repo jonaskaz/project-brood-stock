@@ -35,6 +35,7 @@ Controller controller;
 Dimmer dimmer;
 RTC_DS3231 rtc;
 
+void DSTCheckAndChange();
 time_t createTime(uint8_t hour, uint8_t minute);
 void setupRTC();
 void logInfo(uint8_t hour, uint8_t minute, uint8_t second,
@@ -61,6 +62,7 @@ void setup() {
 }
 
 void loop() {
+  DSTCheckAndChange();
   model.currentTime = rtc.now().unixtime();
   controller.run(model, view);
   dimmer.run(model);
@@ -69,6 +71,21 @@ void loop() {
     logInfo(rtc.now().hour(), rtc.now().minute(), rtc.now().second(),
             model.brightnessPercent, dimmer.totalElapsedSeconds, dimmer.state,
             model.manualTiming);
+  }
+}
+
+void DSTCheckAndChange(){
+  // do time change at 2AM to avoid complications
+  if(dimmer.getDSTflag() && (rtc.now().hour() == 2)){
+    time_t newTime;
+    if(dimmer.getDSTValue() == 1.0){ //spring ahead
+      newTime = createTime((rtc.now().hour() + 1), rtc.now().minute());
+    }else if(dimmer.getDSTValue() == 0.0){ //roll back
+      newTime = createTime((rtc.now().hour() - 1), rtc.now().minute());
+    }
+    //set new time and clear DSTflag
+    rtc.adjust(newTime);
+    dimmer.clearDSTflag();
   }
 }
 
