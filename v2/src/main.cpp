@@ -21,7 +21,7 @@ const int DEFAULT_MANUAL_SUNSET_MINUTE = 25;
 
 // Dimmer parameters
 const int MAXBRIGHTNESS = 4095;
-const int MINBRIGHTNESS = 300;
+const int MINBRIGHTNESS = 100;
 const double LATITUDE = 46.8421690;
 const double LONGITUDE = -88.3803090;
 const double TIMEZONE = -4.0;
@@ -64,12 +64,6 @@ void loop() {
   model.currentTime = rtc.now().unixtime();
   controller.run(model, view);
   dimmer.run(model);
-  if (prevLogMinute != rtc.now().second()) {
-    prevLogMinute = rtc.now().second();
-    logInfo(rtc.now().hour(), rtc.now().minute(), rtc.now().second(),
-            model.brightnessPercent, dimmer.totalElapsedSeconds, dimmer.state,
-            model.manualTiming);
-  }
 }
 
 time_t createTime(uint8_t hour, uint8_t minute) {
