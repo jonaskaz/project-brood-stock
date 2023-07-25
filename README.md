@@ -14,10 +14,10 @@ A century ago the Mohawk and Wolverine copper mines dumped mine tailings contain
 
 ### Native Fish Habitat
 Stamp sands have damaged the natural reef habitat for 
-many native fish. Buffalo reef is a 2,200 acre natural cobble feature near the Keweenaw Peninsula that was affected by stamp sands. It is estimated that by 2025 60% of the reef will no longer support lake trout and whitefish spawning ([michigan DNR](https://www.michigan.gov/dnr/managing-resources/fisheries/units/buffalo-reef)).
+many native fish. Buffalo reef is a 2,200 acre natural cobble feature near the Keweenaw Peninsula that was affected by stamp sands. It is estimated that by 2025 60% of the reef will no longer support lake trout and whitefish spawning ([Michigan DNR](https://www.michigan.gov/dnr/managing-resources/fisheries/units/buffalo-reef)).
 
 ### Keweenaw Bay Tribal Fish Hatchery
-The [Keweenaw Bay Tribal Hatchery](https://nrd.kbic-nsn.gov/fisheries) is focused on raising native fish to stock the lakes and streams in the Keweenaw. They aim to provide a self-sustaining fishery so that for every fish taken out of the lake one is put in. This work both rebuilds the ecosystem and to supports commercial fishers in the Keweenaw.
+The [Keweenaw Bay Tribal Hatchery](https://nrd.kbic-nsn.gov/fisheries) is focused on raising native fish to stock the lakes and streams in the Keweenaw. They aim to provide a self-sustaining fishery so that for every fish taken out of the lake one is put in. This work both rebuilds the ecosystem and supports commercial fishers in the Keweenaw.
 
 ![Picture of outside of the KBIC Hatchery Broodstock building](images/hatchery.png)  
 *The Keweenaw Bay Tribal Hatchery Broodstock building*  
