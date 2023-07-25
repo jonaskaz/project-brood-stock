@@ -2,7 +2,9 @@
 Jonas Kazlauskas, Matthew Phillips  
 Summer 2023 [TECHSCEnE REU Program](https://www.techscene.mtu.edu/home) research project  
 Advised by Dr. Christopher Middlebrook  
-Department of Electrical and Computer Engineering, Michigan Technological University, Houghton, Michigan, USA 
+Department of Electrical and Computer Engineering, Michigan Technological University, Houghton, Michigan, USA  
+
+This work was funded by the NSF grant #2050739 awarded to Dr. Rao and Dr. Gagnon, Michigan Technological University and carried out under the guidance of the Natural Resources Department, Keweenaw Bay Indian Community
 
 # Objective
 To create a lighting system for the Keweenaw Bay Tribal Hatchery to prevent light shock on the fish, provide natural spawning signals, and help hatchery technicians. 
