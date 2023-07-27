@@ -48,5 +48,34 @@ To create a lighting system for the Keweenaw Bay Tribal Hatchery that prevents l
 - Resumes after power outages
 
 # Our Work
+We built and installed an automated lighting system to mimic the sunrise and sunset inside the KBIC hatchery. This system calculates sunrise and sunset times based on the location of the hatchery and slowly adjusts light brightness accordingly. System settings can be changed through a rotary encoder, and information is displayed on an LCD screen. The following variables are adjustable:
+
+- Sunrise and sunset length
+- Manual mode (user-defined sunrise and sunset time)
+- Maximum brightness
+
+Settings are saved to the MCU’s memory, allowing the system to resume after power disruptions. The system is designed to support controlling 5+ lights at a time. Below are images of our lighting system
+
+<p align="center">
+<img src="images/boxPNG3.png" width=50%>  
+</p>  
+
+<p align="center">
+<img src="images/boxPNG1.png" width=50%>  
+</p>  
+
+
+We installed this prototype in the KBIC hatchery connected to two lights. The placed our control system was in their electronics room and wired it to two led lights hanging in the facility. We hope this work will:
+
+- Shorten the spawning season for the fish hatchery
+- Improve the health of eggs and fish 
+- Inspire other hatcheries to use automated lighting
+
+Below is an image of our lighting system installed inside the KBIC fish hatchery.
+
+<p align="center">
+<img src="images/installedLights.jpg" width=50%>  
+</p>  
+
 To see our initial prototype navigate to the `v1` folder. Our second and final version can be found in our `v2` folder. Data and plots from testing can be found in the `notebooks` folder. Full documentation including our research and planning for this project can be found on our [notion page](https://aboard-smelt-100.notion.site/KBIC-Fish-Hatchery-Lighting-Project-0fc3fc064985408a982954ea42f111fe?pvs=4). 
 
