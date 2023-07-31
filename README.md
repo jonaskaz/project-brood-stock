@@ -6,6 +6,11 @@ Department of Electrical and Computer Engineering, Michigan Technological Univer
 
 This work was funded by the NSF grant #2050739 awarded to Dr. Rao and Dr. Gagnon, Michigan Technological University and carried out under the guidance of the Natural Resources Department, Keweenaw Bay Indian Community
 
+# Overview
+<p align="center">
+<img src="images/HatcheryPoster.png" width=100%>  
+</p>  
+
 # Objective
 To create a lighting system for the Keweenaw Bay Tribal Hatchery to prevent light shock on the fish, provide natural spawning signals, and help hatchery technicians. 
 
